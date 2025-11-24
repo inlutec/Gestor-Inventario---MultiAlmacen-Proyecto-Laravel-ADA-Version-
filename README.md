@@ -53,6 +53,13 @@ Sistema web desarrollado para la **Junta de Andalucía** que permite la gestión
 - Generación de albaranes en PDF
 - Sistema de firmas digitales (emisor y receptor)
 - Enlaces públicos para firma externa
+- **Firma móvil remota con SSE (Server-Sent Events)**:
+  - Firma desde dispositivos móviles en tiempo real
+  - Comunicación bidireccional mediante SSE
+  - Generación de ID de sesión único (4 dígitos)
+  - Notificaciones push instantáneas al dispositivo móvil
+  - Canvas táctil para firma con dedo o stylus
+  - Reconexión automática en caso de pérdida de conexión
 
 ### 3. Peticiones Públicas
 - Formulario web público para solicitar material
@@ -102,6 +109,18 @@ Sistema web desarrollado para la **Junta de Andalucía** que permite la gestión
 - Funciona offline
 - Service Worker para caché
 - Firma móvil de albaranes
+
+### 9. Firma Móvil Remota (SSE)
+- **Tecnología**: Server-Sent Events (SSE) para comunicación en tiempo real
+- **Funcionamiento**:
+  - Dispositivo móvil se conecta al stream SSE con un ID de sesión único
+  - Conexión persistente que mantiene el dispositivo en espera
+  - Pings automáticos cada 15 segundos para mantener la conexión viva
+  - Cuando se solicita una firma desde la web, se envía instantáneamente al móvil
+  - Canvas HTML5 táctil para capturar la firma con dedo o stylus
+  - Reconexión automática en caso de pérdida de conexión
+- **Casos de uso**: Firmas presenciales, firmas remotas sin compartir enlaces, múltiples dispositivos simultáneos
+- **Seguridad**: ID de sesión único, expiración automática de sesiones (24 horas), validación de firmas
 
 ### 9. Sistema de Backups
 - Backups automáticos de la base de datos
@@ -462,7 +481,12 @@ gestor-inventario-material/
 - **DashboardController.php**: Estadísticas y datos del dashboard
 - **EntidadController.php**: CRUD de materiales/entidades
 - **MaterialMovimientoController.php**: Gestión de movimientos
+  - Incluye funcionalidad para solicitar firma móvil mediante SSE
 - **MaterialPeticionController.php**: Gestión de peticiones públicas
+- **FirmaMovilController.php**: Gestión de firma móvil con SSE
+  - Stream SSE para mantener conexión con dispositivos móviles
+  - Gestión de sesiones activas en caché
+  - Envío de solicitudes de firma en tiempo real
 - **ConfigController.php**: Configuración del sistema
 - **SolicitudReposicionController.php**: Solicitudes de reposición
 - **BackupController.php**: Gestión de backups
@@ -855,6 +879,15 @@ WHERE TABLE_SCHEMA = 'nombre_base_datos';
 - `GET /api/albaran/{token}/pdf` - Descargar PDF del albarán
 - `GET /api/albaran/{token}/pdf-sin-firmar` - PDF sin firmar
 - `POST /api/albaran/{token}/subir-pdf-firmado` - Subir PDF firmado
+
+#### Firma Móvil (SSE)
+- `GET /api/firma-movil/stream?session={sessionId}` - Stream SSE para recibir solicitudes de firma
+  - Mantiene conexión abierta mediante Server-Sent Events
+  - Envía pings cada 15 segundos para mantener conexión viva
+  - Duración máxima: 1 hora
+  - Formato de respuesta: `text/event-stream`
+- `POST /api/firma-movil/firmar` - Enviar firma desde dispositivo móvil
+- `GET /api/firma-movil/sesiones` - Listar sesiones activas (admin)
 
 ### Rutas Autenticadas (requieren token Sanctum)
 
@@ -1266,6 +1299,39 @@ El dashboard muestra:
 3. Verificar logs de Laravel para errores de email
 4. Verificar que `MAIL_*` esté configurado en `.env`
 
+### Problema: La firma móvil no funciona
+
+**Síntomas**: El dispositivo móvil no recibe solicitudes de firma o se desconecta
+
+**Soluciones**:
+1. **Verificar conexión SSE**:
+   - Verificar que el endpoint `/api/firma-movil/stream` esté accesible
+   - Verificar que Nginx no esté haciendo buffering (debe tener `X-Accel-Buffering: no`)
+   - Verificar logs del navegador para errores de EventSource
+
+2. **Verificar ID de sesión**:
+   - El ID de sesión debe ser de 4 dígitos
+   - Verificar que el ID introducido en la web coincida con el del móvil
+   - La sesión expira después de 24 horas de inactividad
+
+3. **Verificar configuración de Nginx para SSE**:
+   ```nginx
+   # En la configuración de /gestionmaterial/
+   proxy_buffering off;
+   proxy_cache off;
+   proxy_read_timeout 3600s;
+   ```
+
+4. **Verificar caché de Laravel**:
+   - Las sesiones SSE se almacenan en caché de Laravel
+   - Verificar que el driver de caché esté funcionando correctamente
+   - Limpiar caché si es necesario: `php artisan cache:clear`
+
+5. **Reconexión automática**:
+   - El cliente SSE tiene reconexión automática cada 3 segundos
+   - Si la conexión se pierde, se reconecta automáticamente
+   - Verificar que no haya firewalls bloqueando conexiones persistentes
+
 ### Problema: El mapa de almacenes no se muestra
 
 **Síntomas**: Mapa en blanco en petición pública
@@ -1541,6 +1607,7 @@ Propietaria - Junta de Andalucía
 - Peticiones públicas de material
 - Dashboard con estadísticas
 - Sistema de firmas digitales
+- **Firma móvil remota con SSE (Server-Sent Events)**
 - Gestión multi-almacén
 - Integración con provincias y sedes
 - PWA funcional
