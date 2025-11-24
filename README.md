@@ -1,4 +1,4 @@
-# Sistema de Gestión de Inventario de Material - Junta de Andalucía
+# Sistema de Gestión de Inventario de Material - Junta de Andalucía Version
 
 ## 📋 Índice
 
@@ -34,6 +34,7 @@ Sistema web desarrollado para la **Junta de Andalucía** que permite la gestión
 - **Mapas**: Leaflet.js
 - **Gráficos**: Chart.js
 - **PWA**: Service Worker + Manifest
+- **Comunicación en Tiempo Real**: Server-Sent Events (SSE) para firma móvil
 
 ---
 
@@ -53,6 +54,13 @@ Sistema web desarrollado para la **Junta de Andalucía** que permite la gestión
 - Generación de albaranes en PDF
 - Sistema de firmas digitales (emisor y receptor)
 - Enlaces públicos para firma externa
+- **Firma móvil remota con SSE (Server-Sent Events)**:
+  - Firma desde dispositivos móviles en tiempo real
+  - Comunicación bidireccional mediante SSE
+  - Generación de ID de sesión único (4 dígitos)
+  - Notificaciones push instantáneas al dispositivo móvil
+  - Canvas táctil para firma con dedo o stylus
+  - Reconexión automática en caso de pérdida de conexión
 
 ### 3. Peticiones Públicas
 - Formulario web público para solicitar material
@@ -103,7 +111,19 @@ Sistema web desarrollado para la **Junta de Andalucía** que permite la gestión
 - Service Worker para caché
 - Firma móvil de albaranes
 
-### 9. Sistema de Backups
+### 9. Firma Móvil Remota (SSE)
+- **Tecnología**: Server-Sent Events (SSE) para comunicación en tiempo real
+- **Funcionamiento**:
+  - Dispositivo móvil se conecta al stream SSE con un ID de sesión único
+  - Conexión persistente que mantiene el dispositivo en espera
+  - Pings automáticos cada 15 segundos para mantener la conexión viva
+  - Cuando se solicita una firma desde la web, se envía instantáneamente al móvil
+  - Canvas HTML5 táctil para capturar la firma con dedo o stylus
+  - Reconexión automática en caso de pérdida de conexión
+- **Casos de uso**: Firmas presenciales, firmas remotas sin compartir enlaces, múltiples dispositivos simultáneos
+- **Seguridad**: ID de sesión único, expiración automática de sesiones (24 horas), validación de firmas
+
+### 10. Sistema de Backups
 - Backups automáticos de la base de datos
 - Restauración desde interfaz web
 - Exportación/importación de datos
@@ -126,7 +146,7 @@ Sistema web desarrollado para la **Junta de Andalucía** que permite la gestión
 ### Cliente
 - Navegador moderno (Chrome, Firefox, Safari, Edge)
 - JavaScript habilitado
-- Para PWA: Navegador compatible con Service Workers (en desarrollo)
+- Para PWA: Navegador compatible con Service Workers
 
 ---
 
@@ -375,6 +395,31 @@ server {
     location @gestionmaterial_fallback {
         rewrite ^/gestionmaterial/(.*)$ /gestionmaterial/index.php?$query_string last;
     }
+    
+    # Configuración específica para SSE (Server-Sent Events) - Firma móvil
+    location /gestionmaterial/api/firma-movil/stream {
+        alias /var/www/gestor-inventario-material/public/;
+        try_files $uri @gestionmaterial_fallback;
+        
+        # Configuración para SSE
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+        
+        # Headers SSE
+        add_header Cache-Control no-cache;
+        add_header X-Accel-Buffering no;
+        
+        # Configuración para PHP
+        location ~ \.php$ {
+            fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
+            fastcgi_index index.php;
+            fastcgi_param SCRIPT_FILENAME $request_filename;
+            fastcgi_param PATH_INFO $fastcgi_path_info;
+            include fastcgi_params;
+        }
+    }
 }
 ```
 
@@ -462,7 +507,12 @@ gestor-inventario-material/
 - **DashboardController.php**: Estadísticas y datos del dashboard
 - **EntidadController.php**: CRUD de materiales/entidades
 - **MaterialMovimientoController.php**: Gestión de movimientos
+  - Incluye funcionalidad para solicitar firma móvil mediante SSE
 - **MaterialPeticionController.php**: Gestión de peticiones públicas
+- **FirmaMovilController.php**: Gestión de firma móvil con SSE
+  - Stream SSE para mantener conexión con dispositivos móviles
+  - Gestión de sesiones activas en caché
+  - Envío de solicitudes de firma en tiempo real
 - **ConfigController.php**: Configuración del sistema
 - **SolicitudReposicionController.php**: Solicitudes de reposición
 - **BackupController.php**: Gestión de backups
@@ -473,7 +523,15 @@ gestor-inventario-material/
 - **MaterialExistencias.vue**: Gestión de stock
 - **MaterialMovimientos.vue**: Formulario de movimientos
 - **MaterialPeticionPublica.vue**: Formulario público de peticiones
+  - Incluye mapa interactivo con **Leaflet.js** para selección de almacenes
+  - Utiliza OpenStreetMap como proveedor de tiles
+  - Marcadores personalizados con distribución automática
 - **MaterialPeticiones.vue**: Gestión de peticiones (admin)
+- **FirmaMovil.vue**: Página de firma móvil con SSE
+  - Conexión SSE mediante EventSource API
+  - Canvas HTML5 para captura de firma táctil
+  - Reconexión automática en caso de error
+  - Gestión de estados: esperando, firmando, enviando, completado
 - **Configuracion.vue**: Panel de configuración
 - **Login.vue**: Página de inicio de sesión
 
@@ -856,6 +914,20 @@ WHERE TABLE_SCHEMA = 'nombre_base_datos';
 - `GET /api/albaran/{token}/pdf-sin-firmar` - PDF sin firmar
 - `POST /api/albaran/{token}/subir-pdf-firmado` - Subir PDF firmado
 
+#### Firma Móvil (SSE)
+- `GET /api/firma-movil/stream?session={sessionId}` - Stream SSE para recibir solicitudes de firma
+  - Mantiene conexión abierta mediante Server-Sent Events
+  - Envía pings cada 15 segundos para mantener conexión viva
+  - Duración máxima: 1 hora
+  - Formato de respuesta: `text/event-stream`
+  - Eventos enviados: `connected`, `ping`, `solicitud_firma`
+- `POST /api/material-movimientos/{id}/firmar-remoto` - Solicitar firma remota (requiere `session_id` y `tipo_firma`)
+  - Parámetros: `session_id` (4 dígitos), `tipo_firma` ('emisor' o 'receptor')
+  - Guarda la solicitud en caché para que SSE la envíe al dispositivo móvil
+- `POST /api/firma-movil/firmar` - Enviar firma desde dispositivo móvil
+  - Parámetros: `movimiento_id`, `tipo_firma`, `firma` (base64 del canvas)
+- `GET /api/firma-movil/sesiones` - Listar sesiones activas (admin)
+
 ### Rutas Autenticadas (requieren token Sanctum)
 
 #### Autenticación
@@ -982,6 +1054,15 @@ WHERE TABLE_SCHEMA = 'nombre_base_datos';
 #### Firmar Movimiento
 - **Desde la aplicación**: El receptor puede firmar desde su cuenta
 - **Enlace público**: Acceder al enlace y firmar sin autenticación
+- **Firma móvil remota (SSE)**: 
+  - Abrir la página de firma móvil (`/firmamovil`) en un dispositivo móvil
+  - Se genera un ID de sesión único de 4 dígitos
+  - El dispositivo se conecta al stream SSE y queda en espera
+  - Desde la aplicación web, seleccionar "Firmar con móvil" e introducir el ID de sesión
+  - La solicitud de firma se envía instantáneamente al dispositivo móvil mediante SSE
+  - El usuario firma en el canvas táctil del móvil
+  - La firma se envía de vuelta y se guarda automáticamente
+  - **Ventajas**: No requiere compartir enlaces, funciona en tiempo real, ideal para firmas presenciales
 - Se requiere firma del emisor y receptor para salidas
 - Solo se requiere firma del receptor para entradas
 
@@ -1266,6 +1347,39 @@ El dashboard muestra:
 3. Verificar logs de Laravel para errores de email
 4. Verificar que `MAIL_*` esté configurado en `.env`
 
+### Problema: La firma móvil no funciona
+
+**Síntomas**: El dispositivo móvil no recibe solicitudes de firma o se desconecta
+
+**Soluciones**:
+1. **Verificar conexión SSE**:
+   - Verificar que el endpoint `/api/firma-movil/stream` esté accesible
+   - Verificar que Nginx no esté haciendo buffering (debe tener `X-Accel-Buffering: no`)
+   - Verificar logs del navegador para errores de EventSource
+
+2. **Verificar ID de sesión**:
+   - El ID de sesión debe ser de 4 dígitos
+   - Verificar que el ID introducido en la web coincida con el del móvil
+   - La sesión expira después de 24 horas de inactividad
+
+3. **Verificar configuración de Nginx para SSE**:
+   ```nginx
+   # En la configuración de /gestionmaterial/
+   proxy_buffering off;
+   proxy_cache off;
+   proxy_read_timeout 3600s;
+   ```
+
+4. **Verificar caché de Laravel**:
+   - Las sesiones SSE se almacenan en caché de Laravel
+   - Verificar que el driver de caché esté funcionando correctamente
+   - Limpiar caché si es necesario: `php artisan cache:clear`
+
+5. **Reconexión automática**:
+   - El cliente SSE tiene reconexión automática cada 3 segundos
+   - Si la conexión se pierde, se reconecta automáticamente
+   - Verificar que no haya firewalls bloqueando conexiones persistentes
+
 ### Problema: El mapa de almacenes no se muestra
 
 **Síntomas**: Mapa en blanco en petición pública
@@ -1518,9 +1632,19 @@ Antes de hacer commit:
 
 ---
 
+## 📞 Soporte
+
+Para problemas o dudas:
+1. Revisar esta documentación
+2. Revisar logs: `storage/logs/laravel.log`
+3. Consultar con el equipo de desarrollo
+4. Revisar issues en el repositorio
+
+---
+
 ## 📄 Licencia
 
-Licencia Libre
+Propietaria - Junta de Andalucía
 
 ---
 
@@ -1531,6 +1655,7 @@ Licencia Libre
 - Peticiones públicas de material
 - Dashboard con estadísticas
 - Sistema de firmas digitales
+- **Firma móvil remota con SSE (Server-Sent Events)**
 - Gestión multi-almacén
 - Integración con provincias y sedes
 - PWA funcional
@@ -1548,6 +1673,8 @@ Licencia Libre
 - [Laravel Sanctum](https://laravel.com/docs/11.x/sanctum)
 - [Leaflet.js Documentation](https://leafletjs.com/reference.html) - Para el mapa de almacenes en la web pública
 - [OpenStreetMap](https://www.openstreetmap.org/) - Proveedor de tiles del mapa
+- [Server-Sent Events (SSE) MDN](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events) - Para la firma móvil remota
+- [EventSource API](https://developer.mozilla.org/en-US/docs/Web/API/EventSource) - API del navegador para SSE
 
 ### Archivos de Configuración Importantes
 - `.env` - Variables de entorno
@@ -1561,4 +1688,4 @@ Licencia Libre
 
 **Última actualización**: Noviembre 2025  
 **Versión del documento**: 1.0  
-**Mantenido por**: Joaquín Navajas Cordobes
+**Mantenido por**: Joaquín Navajas Cordobés
