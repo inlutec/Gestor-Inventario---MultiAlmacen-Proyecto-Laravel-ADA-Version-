@@ -523,7 +523,15 @@ gestor-inventario-material/
 - **MaterialExistencias.vue**: Gestión de stock
 - **MaterialMovimientos.vue**: Formulario de movimientos
 - **MaterialPeticionPublica.vue**: Formulario público de peticiones
+  - Incluye mapa interactivo con **Leaflet.js** para selección de almacenes
+  - Utiliza OpenStreetMap como proveedor de tiles
+  - Marcadores personalizados con distribución automática
 - **MaterialPeticiones.vue**: Gestión de peticiones (admin)
+- **FirmaMovil.vue**: Página de firma móvil con SSE
+  - Conexión SSE mediante EventSource API
+  - Canvas HTML5 para captura de firma táctil
+  - Reconexión automática en caso de error
+  - Gestión de estados: esperando, firmando, enviando, completado
 - **Configuracion.vue**: Panel de configuración
 - **Login.vue**: Página de inicio de sesión
 
@@ -912,7 +920,12 @@ WHERE TABLE_SCHEMA = 'nombre_base_datos';
   - Envía pings cada 15 segundos para mantener conexión viva
   - Duración máxima: 1 hora
   - Formato de respuesta: `text/event-stream`
+  - Eventos enviados: `connected`, `ping`, `solicitud_firma`
+- `POST /api/material-movimientos/{id}/firmar-remoto` - Solicitar firma remota (requiere `session_id` y `tipo_firma`)
+  - Parámetros: `session_id` (4 dígitos), `tipo_firma` ('emisor' o 'receptor')
+  - Guarda la solicitud en caché para que SSE la envíe al dispositivo móvil
 - `POST /api/firma-movil/firmar` - Enviar firma desde dispositivo móvil
+  - Parámetros: `movimiento_id`, `tipo_firma`, `firma` (base64 del canvas)
 - `GET /api/firma-movil/sesiones` - Listar sesiones activas (admin)
 
 ### Rutas Autenticadas (requieren token Sanctum)
