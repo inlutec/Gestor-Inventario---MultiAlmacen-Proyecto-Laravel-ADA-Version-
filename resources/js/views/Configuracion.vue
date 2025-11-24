@@ -2402,7 +2402,8 @@ const toggleAlmacenDepartamento = async (departamento) => {
     // Actualizar optimistamente en la interfaz
     departamento.es_almacen = nuevoEstado;
     
-    const response = await axios.put(`/config/departamentos/${departamento.id}`, {
+    // Usar la ruta específica para actualizar el estado de almacén
+    const response = await axios.patch(`/config/departamentos/${departamento.id}/almacen`, {
       es_almacen: nuevoEstado
     });
     

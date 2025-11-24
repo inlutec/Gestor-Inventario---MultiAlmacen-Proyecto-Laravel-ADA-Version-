@@ -88,12 +88,13 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     
     <!-- CSS Assets with preload - UPDATED FILE NAMES FROM MANIFEST -->
-    <link rel="preload" href="{{ asset('build/assets/app-DiwkvIH4.css') }}" as="style">
-    <link rel="stylesheet" href="{{ asset('build/assets/app-DiwkvIH4.css') }}">
+    <link rel="preload" href="{{ asset('build/assets/app-Bt7dCtfn.css') }}" as="style">
+    <link rel="stylesheet" href="{{ asset('build/assets/app-Bt7dCtfn.css') }}">
+    <link rel="stylesheet" href="{{ asset('build/assets/app-CqG0vQ4Q.css') }}">
     
     <!-- JS Assets with defer - UPDATED FILE NAME FROM MANIFEST -->
-    <link rel="modulepreload" href="{{ asset('build/assets/app-vg5esXCD.js') }}">
-    <script type="module" src="{{ asset('build/assets/app-vg5esXCD.js') }}" defer></script>
+    <link rel="modulepreload" href="{{ asset('build/assets/app-MriAM29_.js') }}">
+    <script type="module" src="{{ asset('build/assets/app-MriAM29_.js') }}" defer></script>
     
     <!-- Fallback for older browsers -->
     <script>
