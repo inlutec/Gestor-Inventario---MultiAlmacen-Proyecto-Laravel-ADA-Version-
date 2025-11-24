@@ -1,0 +1,37 @@
+<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#006633;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00994d;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Fondo con bordes redondeados -->
+  <rect width="512" height="512" fill="url(#grad)" rx="80"/>
+  
+  <!-- Icono de impresora estilizado -->
+  <g transform="translate(256, 256)">
+    <!-- Base de la impresora -->
+    <rect x="-120" y="-60" width="240" height="140" fill="white" rx="8"/>
+    <rect x="-120" y="-60" width="240" height="40" fill="#e5e7eb" rx="8"/>
+    
+    <!-- Papel saliendo -->
+    <rect x="-80" y="50" width="160" height="80" fill="white" stroke="#d1d5db" stroke-width="4" rx="4"/>
+    <line x1="-60" y1="70" x2="60" y2="70" stroke="#9ca3af" stroke-width="3"/>
+    <line x1="-60" y1="85" x2="60" y2="85" stroke="#9ca3af" stroke-width="3"/>
+    <line x1="-60" y1="100" x2="40" y2="100" stroke="#9ca3af" stroke-width="3"/>
+    
+    <!-- Bandeja superior -->
+    <rect x="-100" y="-100" width="200" height="40" fill="white" rx="4"/>
+    <rect x="-90" y="-90" width="180" height="20" fill="#f3f4f6"/>
+    
+    <!-- Indicador LED -->
+    <circle cx="80" cy="-40" r="8" fill="#10b981"/>
+    
+    <!-- Líneas de estado -->
+    <rect x="-40" y="-40" width="60" height="4" fill="#9ca3af" rx="2"/>
+    <rect x="-40" y="-28" width="50" height="4" fill="#9ca3af" rx="2"/>
+  </g>
+  
+  <!-- Texto identificativo -->
+  <text x="256" y="460" font-family="Arial, sans-serif" font-size="40" font-weight="bold" fill="white" text-anchor="middle" opacity="0.9">JUNTA</text>
+</svg>

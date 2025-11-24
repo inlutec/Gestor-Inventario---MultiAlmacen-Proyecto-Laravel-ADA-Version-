@@ -1,0 +1,26 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fondo -->
+  <rect width="512" height="512" rx="128" fill="#006633"/>
+  
+  <!-- Smartphone -->
+  <rect x="140" y="80" width="232" height="352" rx="24" fill="white" stroke="white" stroke-width="8"/>
+  
+  <!-- Pantalla -->
+  <rect x="160" y="110" width="192" height="272" rx="8" fill="#006633" opacity="0.2"/>
+  
+  <!-- Firma (línea estilizada) -->
+  <path d="M 180 200 Q 220 160, 260 200 T 340 200" 
+        fill="none" 
+        stroke="#006633" 
+        stroke-width="12" 
+        stroke-linecap="round"/>
+  
+  <path d="M 180 260 Q 240 220, 300 260" 
+        fill="none" 
+        stroke="#006633" 
+        stroke-width="12" 
+        stroke-linecap="round"/>
+  
+  <!-- Botón home -->
+  <circle cx="256" cy="405" r="15" fill="#006633" opacity="0.3"/>
+</svg>

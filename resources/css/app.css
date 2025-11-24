@@ -1,0 +1,725 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* Tokens de diseño por variables CSS (claro/oscuro) */
+@layer base {
+	:root {
+		/* Reducir tamaño base de fuente en 10% (16px * 0.9 = 14.4px) */
+		font-size: 14.4px;
+		
+		/* Light mode tokens con mejor contraste */
+		--bg: 248 249 251;            /* near #F8F9FB */
+		--card: 255 255 255;          /* #FFFFFF */
+		--text: 15 23 42;             /* #0F172A slate-900 for stronger contrast */
+		--muted: 71 85 105;           /* #475569 slate-600 */
+		--border: 209 213 219;        /* #D1D5DB */
+		--primary: 0 106 78;          /* Junta Green */
+		--primary-600: 0 85 62;
+		--accent: 0 168 107;          /* ADA Accent */
+	}
+	.dark {
+		/* Dark mode tokens con mejor legibilidad */
+		--bg: 15 23 28;               /* deep slate */
+		--card: 28 38 44;             /* panel */
+		--text: 232 234 237;          /* high-contrast */
+		--muted: 203 213 225;         /* slate-300 */
+		--border: 71 85 105;          /* slate-600 */
+		--primary: 15 109 93;         /* ADA Primary */
+		--primary-600: 12 87 74;
+		--accent: 0 168 107;          /* ADA Accent */
+	}
+
+	* { border-color: rgb(var(--border)); }
+	body { @apply antialiased; background-color: rgb(var(--bg)); color: rgb(var(--text)); font-feature-settings:'cv11','ss01'; }
+	h1,h2,h3,h4,h5,h6 { @apply font-semibold tracking-tight; }
+	button { @apply transition-all duration-200; }
+}
+
+@layer components {
+		/* Botones profesionales (con mejor contraste y focus) - 20% más pequeños */
+		.btn { @apply inline-flex items-center justify-center rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-0 disabled:opacity-60 disabled:cursor-not-allowed; }
+		.btn-primary { @apply text-white shadow-sm hover:shadow focus:ring-emerald-300; background-color: rgb(var(--primary)); }
+		.btn-primary:hover { background-color: rgb(var(--primary-600)); }
+		.btn-secondary { @apply text-gray-800 dark:text-[rgb(var(--text))] hover:bg-gray-200/60 dark:hover:bg-white/10 focus:ring-emerald-200; background-color: rgb(var(--card)); border: 1px solid rgb(var(--border)); }
+		.btn-danger { @apply bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 shadow-sm hover:shadow; }
+		.btn-success { @apply bg-emerald-600 text-white hover:bg-emerald-700 focus:ring-emerald-500 shadow-sm hover:shadow; }
+  
+	.btn-sm {
+			@apply px-2 py-1 text-xs rounded;
+	}
+  
+	.btn-lg {
+			@apply px-5 py-2.5 text-base rounded-lg;
+	}
+  
+	/* Inputs profesionales - 20% más pequeños */
+		.input { @apply w-full rounded-md border bg-white px-3 py-2 text-sm placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2; border-color: rgb(var(--border)); }
+		.dark .input { @apply bg-[rgb(var(--card))] text-[rgb(var(--text))]; }
+		.input:focus { box-shadow: 0 0 0 2px rgba(0,106,78,0.2); border-color: rgb(var(--primary)); }
+  
+	.input-error {
+		@apply border-red-300 focus:border-red-500 focus:ring-red-500/20;
+	}
+  
+		.select { @apply w-full rounded-md border bg-white px-3 py-2 text-sm transition-all duration-200 focus:outline-none focus:ring-2; border-color: rgb(var(--border)); }
+		.dark .select { @apply bg-[rgb(var(--card))] text-[rgb(var(--text))]; }
+		.select:focus { box-shadow: 0 0 0 2px rgba(0,106,78,0.2); border-color: rgb(var(--primary)); }
+  
+		.textarea { @apply w-full rounded-md border bg-white px-3 py-2 text-sm placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 resize-none; border-color: rgb(var(--border)); }
+		.dark .textarea { @apply bg-[rgb(var(--card))] text-[rgb(var(--text))]; }
+		.textarea:focus { box-shadow: 0 0 0 2px rgba(0,106,78,0.2); border-color: rgb(var(--primary)); }
+  
+		/* Cards profesionales - 20% más pequeños */
+		.card { @apply rounded-lg p-5 shadow-sm hover:shadow-md transition-all duration-200; background-color: rgb(var(--card)); border: 1px solid rgb(var(--border)); }
+  
+	.card-header {
+		@apply mb-3 flex items-center justify-between;
+	}
+  
+	.card-title {
+		@apply text-base font-semibold text-gray-900;
+	}
+  
+	/* Tablas profesionales - 20% más pequeñas */
+		.table-wrapper { @apply overflow-x-auto rounded-lg; background-color: rgb(var(--card)); border: 1px solid rgb(var(--border)); }
+  
+	.table {
+		@apply w-full divide-y divide-gray-200;
+	}
+  
+		.table thead { @apply bg-gray-50 dark:bg-white/5; }
+  
+	.table th {
+		@apply px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-700;
+	}
+  
+	.table td {
+		@apply px-4 py-3 text-sm text-gray-900;
+	}
+  
+		.table tbody tr { @apply transition-colors hover:bg-gray-50 dark:hover:bg-white/5; }
+  
+	/* Badges - 20% más pequeños */
+	.badge {
+		@apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium;
+	}
+  
+	.badge-success {
+		@apply bg-green-100 text-green-800;
+	}
+  
+	.badge-warning {
+		@apply bg-yellow-100 text-yellow-800;
+	}
+  
+	.badge-danger {
+		@apply bg-red-100 text-red-800;
+	}
+  
+	.badge-info {
+		@apply bg-blue-100 text-blue-800;
+	}
+  
+	.badge-default {
+		@apply bg-gray-100 text-gray-800;
+	}
+  
+	/* Alertas - 20% más pequeñas */
+	.alert {
+		@apply rounded-lg p-3 text-sm;
+	}
+  
+		.alert-success { @apply bg-green-50 text-green-800 border border-green-200 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-900/40; }
+  
+		.alert-error { @apply bg-red-50 text-red-800 border border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-900/40; }
+  
+		.alert-warning { @apply bg-yellow-50 text-yellow-800 border border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-200 dark:border-yellow-900/40; }
+  
+		.alert-info { @apply bg-blue-50 text-blue-800 border border-blue-200 dark:bg-sky-900/20 dark:text-sky-200 dark:border-sky-900/40; }
+  
+	/* Modales - 20% más pequeños */
+		.modal-overlay { @apply fixed inset-0 z-50 bg-black/40 backdrop-blur-sm; }
+  
+		.modal { @apply fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-xl p-5 shadow-2xl; background-color: rgb(var(--card)); border: 1px solid rgb(var(--border)); }
+  
+	/* Sidebar profesional - 20% más pequeño */
+		.sidebar-item { @apply flex items-center gap-2 rounded-md px-2 py-2 text-sm font-medium transition-colors; color: rgb(var(--text)); }
+		.sidebar-item:hover { background-color: rgba(0,106,78,0.08); color: rgb(var(--primary)); }
+  
+		.sidebar-item-active { @apply font-semibold; background-color: rgba(0,106,78,0.14); color: rgb(var(--primary)); }
+  
+	/* Animaciones suaves */
+		.fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease; }
+  
+	.fade-enter-from,
+	.fade-leave-to {
+		opacity: 0;
+	}
+  
+		.slide-enter-active, .slide-leave-active { transition: transform 0.3s ease; }
+  
+		.slide-enter-from, .slide-leave-to { transform: translateX(-100%); }
+
+		/* Transición de página moderna */
+		.page-enter-active, .page-leave-active { transition: opacity .2s ease, transform .25s ease; }
+		.page-enter-from, .page-leave-to { opacity: 0; transform: translateY(6px); }
+}
+
+@layer utilities {
+	.text-balance {
+		text-wrap: balance;
+	}
+  
+	/* Utilidades de tema basadas en tokens */
+	.text-muted { color: rgb(var(--muted)); }
+	.text-primary { color: rgb(var(--primary)); }
+	.bg-primary { background-color: rgb(var(--primary)); }
+	.bg-surface { background-color: rgb(var(--card)); }
+
+	/* Corrección de logos (auto-invert en modo claro para SVG/PNG blancos) */
+	.logo-auto-invert { filter: invert(1) brightness(0.95) contrast(1.1); }
+	.dark .logo-auto-invert { filter: none; }
+	.logo-drop { filter: drop-shadow(0 1px 1px rgba(0,0,0,.15)); }
+
+	.scrollbar-hide {
+		-ms-overflow-style: none;
+		scrollbar-width: none;
+	}
+  
+		.scrollbar-hide::-webkit-scrollbar { display: none; }
+}
+
+/* ========================================
+   PWA & MOBILE OPTIMIZATIONS
+   ======================================== */
+
+/* Variables móviles */
+@media (max-width: 768px) {
+	:root {
+		/* Aumentar tamaño de fuente base en móviles para mejor legibilidad */
+		font-size: 15px;
+	}
+}
+
+/* Safe area para notch (iPhone X, etc) */
+@supports (padding: env(safe-area-inset-top)) {
+	body {
+		padding-top: env(safe-area-inset-top);
+		padding-bottom: env(safe-area-inset-bottom);
+		padding-left: env(safe-area-inset-left);
+		padding-right: env(safe-area-inset-right);
+	}
+}
+
+/* Touch targets mínimos de 44x44px para móviles */
+@media (max-width: 768px) {
+	.btn,
+	button,
+	a[role="button"],
+	input[type="checkbox"],
+	input[type="radio"] {
+		min-height: 44px;
+		min-width: 44px;
+	}
+
+	/* Botones más grandes en móvil */
+	.btn {
+		@apply px-4 py-3 text-base;
+	}
+
+	.btn-sm {
+		@apply px-3 py-2 text-sm;
+		min-height: 38px;
+	}
+
+	/* Inputs más grandes y espaciosos */
+	.input,
+	.select,
+	.textarea {
+		@apply px-4 py-3 text-base;
+		min-height: 44px;
+	}
+
+	/* Cards con menos padding en móvil */
+	.card {
+		@apply p-4;
+	}
+
+	/* Tablas responsivas */
+	.table-wrapper {
+		@apply -mx-4 rounded-none border-x-0;
+	}
+
+	.table th,
+	.table td {
+		@apply px-3 py-3;
+	}
+
+	/* Modales a pantalla completa en móvil */
+	.modal {
+		@apply max-w-none w-[calc(100%-2rem)] max-h-[90vh] overflow-y-auto;
+	}
+
+	/* Sidebar móvil */
+	.sidebar-item {
+		@apply px-4 py-3 text-base;
+	}
+}
+
+/* Optimizaciones para tablets */
+@media (min-width: 769px) and (max-width: 1024px) {
+	.card {
+		@apply p-5;
+	}
+
+	.btn {
+		@apply text-sm;
+	}
+}
+
+/* Prevenir zoom en inputs en iOS */
+@media screen and (max-width: 768px) {
+	input[type="text"],
+	input[type="number"],
+	input[type="email"],
+	input[type="tel"],
+	input[type="password"],
+	select,
+	textarea {
+		font-size: 16px !important; /* iOS no hace zoom si es >= 16px */
+	}
+}
+
+/* Optimizaciones de performance para móviles */
+@media (prefers-reduced-motion: no-preference) {
+	* {
+		-webkit-tap-highlight-color: transparent;
+	}
+}
+
+/* Mejoras de contraste en modo standalone (PWA instalada) */
+@media (display-mode: standalone) {
+	body {
+		-webkit-user-select: none;
+		user-select: none;
+	}
+
+	input,
+	textarea,
+	[contenteditable] {
+		-webkit-user-select: text;
+		user-select: text;
+	}
+
+	/* Ocultar el scrollbar del body en modo PWA */
+	body {
+		overflow-x: hidden;
+	}
+}
+
+/* Soporte para landscape en móviles */
+@media (max-width: 768px) and (orientation: landscape) {
+	.modal {
+		@apply max-h-[85vh];
+	}
+}
+
+/* Animación de pull-to-refresh */
+@layer utilities {
+	.pull-to-refresh {
+		overscroll-behavior-y: contain;
+	}
+
+	/* Efecto de toque mejorado */
+	.tap-highlight {
+		-webkit-tap-highlight-color: rgba(0, 106, 78, 0.1);
+	}
+
+	/* Smooth scrolling para móviles */
+	.smooth-scroll {
+		-webkit-overflow-scrolling: touch;
+		scroll-behavior: smooth;
+	}
+
+	/* Grid responsivo automático */
+	.grid-responsive {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+		gap: 1rem;
+	}
+
+	@media (max-width: 640px) {
+		.grid-responsive {
+			grid-template-columns: 1fr;
+		}
+	}
+}
+
+/* Estilos para el banner de instalación PWA */
+.pwa-install-banner {
+	@apply fixed bottom-0 left-0 right-0 z-50 p-4 shadow-2xl;
+	background: linear-gradient(135deg, rgb(var(--primary)) 0%, rgb(var(--primary-600)) 100%);
+	animation: slideUp 0.3s ease-out;
+	transform-origin: bottom;
+}
+
+@keyframes slideUp {
+	from {
+		transform: translateY(100%);
+		opacity: 0;
+	}
+	to {
+		transform: translateY(0);
+		opacity: 1;
+	}
+}
+
+.pwa-install-banner.hiding {
+	animation: slideDown 0.3s ease-in;
+}
+
+@keyframes slideDown {
+	from {
+		transform: translateY(0);
+		opacity: 1;
+	}
+	to {
+		transform: translateY(100%);
+		opacity: 0;
+	}
+}
+
+/* Indicador de estado online/offline */
+.online-indicator {
+	@apply fixed top-4 right-4 z-50 px-3 py-1.5 rounded-full text-xs font-medium shadow-lg;
+	animation: fadeIn 0.3s ease-out;
+}
+
+.online-indicator.online {
+	@apply bg-green-500 text-white;
+}
+
+.online-indicator.offline {
+	@apply bg-red-500 text-white;
+	animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes fadeIn {
+	from { opacity: 0; transform: translateY(-10px); }
+	to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+	0%, 100% { opacity: 1; }
+	50% { opacity: 0.7; }
+}
+
+/* Loading spinner para PWA */
+.pwa-spinner {
+	@apply inline-block w-5 h-5 border-2 border-white/30 border-t-white rounded-full;
+	animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+	to { transform: rotate(360deg); }
+}
+
+/* ========================================
+   MEJORAS PWA ADICIONALES
+   ======================================== */
+
+/* Optimizaciones para PWA standalone */
+@media (display-mode: standalone) {
+	html, body {
+		height: 100vh;
+		overflow: hidden;
+	}
+	
+	body {
+		position: fixed;
+		width: 100%;
+		height: 100%;
+		overscroll-behavior: contain;
+	}
+	
+	#app {
+		height: 100%;
+		overflow-y: auto;
+		-webkit-overflow-scrolling: touch;
+	}
+}
+
+/* Soporte para iPhone X y notch */
+@supports (padding: env(safe-area-inset-top)) {
+	.pwa-standalone {
+		padding-top: env(safe-area-inset-top);
+		padding-bottom: env(safe-area-inset-bottom);
+		padding-left: env(safe-area-inset-left);
+		padding-right: env(safe-area-inset-right);
+	}
+}
+
+/* Optimizaciones para iPad */
+@media only screen
+and (min-device-width: 768px)
+and (max-device-width: 1024px)
+and (-webkit-min-device-pixel-ratio: 2) {
+	.pwa-standalone {
+		padding-top: 20px; /* Compensar barra de navegación */
+	}
+}
+
+/* Mejoras para gestos táctiles */
+@supports (-webkit-touch-callout: none) {
+	* {
+		-webkit-tap-highlight-color: transparent;
+		-webkit-touch-callout: none;
+		-webkit-user-select: none;
+	}
+	
+	input, textarea, [contenteditable] {
+		-webkit-user-select: text;
+	}
+}
+
+/* Optimizaciones para scroll suave */
+.smooth-scroll-pwa {
+	-webkit-overflow-scrolling: touch;
+	scroll-behavior: smooth;
+	overscroll-behavior-y: contain;
+}
+
+/* Prevenir zoom en landscape */
+@media screen and (orientation: landscape) {
+	input[type="text"],
+	input[type="email"],
+	input[type="tel"],
+	input[type="number"],
+	input[type="password"],
+	select,
+	textarea {
+		font-size: 16px !important;
+		transform: rotate(0deg);
+	}
+}
+
+/* Mejoras para modo oscuro PWA */
+@media (prefers-color-scheme: dark) and (display-mode: standalone) {
+	:root {
+		--bg: 15 23 28;
+		--card: 28 38 44;
+		--text: 232 234 237;
+		--muted: 203 213 225;
+		--border: 71 85 105;
+		--primary: 15 109 93;
+	}
+	
+	body {
+		background-color: rgb(var(--bg));
+		color: rgb(var(--text));
+	}
+}
+
+/* Indicador de progreso para instalación PWA */
+.pwa-install-progress {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 3px;
+	background: linear-gradient(90deg, #006633, #009944);
+	transform-origin: left;
+	transform: scaleX(0);
+	transition: transform 0.3s ease;
+	z-index: 9999;
+}
+
+.pwa-install-progress.active {
+	transform: scaleX(1);
+}
+
+/* Mejoras para notificaciones push */
+.push-notification {
+	position: fixed;
+	top: -100px;
+	left: 50%;
+	transform: translateX(-50%);
+	background: white;
+	border-radius: 12px;
+	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+	padding: 16px 20px;
+	min-width: 300px;
+	max-width: 90vw;
+	z-index: 9999;
+	transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.push-notification.show {
+	top: 20px;
+}
+
+.push-notification.dark {
+	background: rgb(var(--card));
+	color: rgb(var(--text));
+	border: 1px solid rgb(var(--border));
+}
+
+/* Optimizaciones para modo offline */
+.offline-indicator-enhanced {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	background: #dc2626;
+	color: white;
+	padding: 8px 16px;
+	text-align: center;
+	font-size: 14px;
+	font-weight: 600;
+	z-index: 9998;
+	animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+	from {
+		transform: translateY(-100%);
+	}
+	to {
+		transform: translateY(0);
+	}
+}
+
+/* Mejoras para formularios en móviles */
+@media (max-width: 768px) {
+	.form-group-mobile {
+		margin-bottom: 1.5rem;
+	}
+	
+	.form-input-mobile {
+		width: 100%;
+		padding: 16px;
+		font-size: 16px;
+		border-radius: 12px;
+		border: 2px solid rgb(var(--border));
+		background: rgb(var(--card));
+		color: rgb(var(--text));
+		transition: all 0.2s ease;
+	}
+	
+	.form-input-mobile:focus {
+		border-color: rgb(var(--primary));
+		box-shadow: 0 0 0 3px rgba(0, 102, 51, 0.1);
+		outline: none;
+	}
+	
+	.form-button-mobile {
+		width: 100%;
+		padding: 16px 24px;
+		font-size: 16px;
+		font-weight: 600;
+		border-radius: 12px;
+		border: none;
+		background: rgb(var(--primary));
+		color: white;
+		cursor: pointer;
+		transition: all 0.2s ease;
+		min-height: 48px;
+	}
+	
+	.form-button-mobile:active {
+		transform: scale(0.98);
+	}
+}
+
+/* Optimizaciones para tablas en móviles */
+.table-responsive-mobile {
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+	white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+	.table-responsive-mobile {
+		display: block;
+		position: relative;
+		white-space: normal;
+	}
+	
+	.table-responsive-mobile thead {
+		display: none;
+	}
+	
+	.table-responsive-mobile tbody,
+	.table-responsive-mobile tr,
+	.table-responsive-mobile td {
+		display: block;
+		width: 100% !important;
+	}
+	
+	.table-responsive-mobile tr {
+		margin-bottom: 1rem;
+		border: 1px solid rgb(var(--border));
+		border-radius: 8px;
+		padding: 1rem;
+	}
+	
+	.table-responsive-mobile td {
+		text-align: right;
+		padding-left: 50%;
+		position: relative;
+	}
+	
+	.table-responsive-mobile td:before {
+		content: attr(data-label);
+		position: absolute;
+		left: 1rem;
+		width: calc(50% - 2rem);
+		text-align: left;
+		font-weight: 600;
+		color: rgb(var(--muted));
+	}
+}
+
+/* Mejoras para animaciones en móviles */
+@media (prefers-reduced-motion: no-preference) and (max-width: 768px) {
+	.mobile-animation {
+		animation-duration: 0.2s;
+		animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+	}
+}
+
+/* Optimizaciones para imágenes en PWA */
+.pwa-image-optimized {
+	max-width: 100%;
+	height: auto;
+	object-fit: cover;
+	border-radius: 8px;
+	transition: transform 0.2s ease;
+}
+
+.pwa-image-optimized:active {
+	transform: scale(0.98);
+}
+
+/* Mejoras para carga lazy loading */
+.lazy-load-pwa {
+	opacity: 0;
+	transition: opacity 0.3s ease;
+}
+
+.lazy-load-pwa.loaded {
+	opacity: 1;
+}
+
+/* Optimizaciones para modo landscape en tablets */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+	.pwa-landscape-tablet {
+		padding: 1rem;
+	}
+	
+	.pwa-landscape-tablet .container {
+		max-width: 100%;
+		padding: 0 1rem;
+	}
+}

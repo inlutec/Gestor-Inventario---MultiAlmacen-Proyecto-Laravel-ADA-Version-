@@ -1,0 +1,53 @@
+/node_modules
+/public/hot
+/public/storage
+/public/build
+/storage/*.key
+/vendor
+.env
+.env.backup
+.env.production
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+auth.json
+npm-debug.log
+yarn-error.log
+/.fleet
+/.idea
+/.vscode
+*.backup
+*.old
+.DS_Store
+Thumbs.db
+
+# Laravel specific
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/logs/*
+!/storage/framework/cache/.gitignore
+!/storage/framework/sessions/.gitignore
+!/storage/framework/views/.gitignore
+!/storage/logs/.gitignore
+
+# Build files
+/public/build/assets/*
+!/public/build/assets/.gitkeep
+/public/build/manifest.json
+
+# Database
+*.sqlite
+*.sqlite-journal
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+

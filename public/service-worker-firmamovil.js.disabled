@@ -1,0 +1,329 @@
+// Service Worker para PWA Firma Móvil - Gestor de Material
+const CACHE_NAME = 'firma-movil-v1.0.0';
+const RUNTIME_CACHE = 'firma-movil-runtime-v1';
+const IMAGE_CACHE = 'firma-movil-images-v1';
+const API_CACHE = 'firma-movil-api-v1';
+const BASE_URL = '/gestionmaterial';
+
+// Recursos estáticos críticos para la app de firma
+const STATIC_ASSETS = [
+  `${BASE_URL}/firmamovil`,
+  `${BASE_URL}/manifest-firmamovil.json`,
+  `${BASE_URL}/images/icons/firma-icon-72x72.png`,
+  `${BASE_URL}/images/icons/firma-icon-96x96.png`,
+  `${BASE_URL}/images/icons/firma-icon-144x144.png`,
+  `${BASE_URL}/images/icons/firma-icon-192x192.png`,
+  `${BASE_URL}/images/icons/firma-icon-512x512.png`,
+];
+
+// Instalación del Service Worker
+self.addEventListener('install', (event) => {
+  console.log('[SW Firma] Installing service worker...');
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then((cache) => {
+        console.log('[SW Firma] Caching static assets');
+        return cache.addAll(STATIC_ASSETS.map(url => new Request(url, { cache: 'reload' })));
+      })
+      .then(() => {
+        console.log('[SW Firma] Static assets cached successfully');
+        return self.skipWaiting();
+      })
+      .catch((error) => {
+        console.error('[SW Firma] Failed to cache static assets:', error);
+      })
+  );
+});
+
+// Activación del Service Worker
+self.addEventListener('activate', (event) => {
+  console.log('[SW Firma] Activating service worker...');
+  event.waitUntil(
+    caches.keys()
+      .then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName.startsWith('firma-movil-') && 
+                cacheName !== CACHE_NAME &&
+                cacheName !== RUNTIME_CACHE &&
+                cacheName !== IMAGE_CACHE &&
+                cacheName !== API_CACHE) {
+              console.log('[SW Firma] Deleting old cache:', cacheName);
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      })
+      .then(() => {
+        console.log('[SW Firma] Service worker activated');
+        return self.clients.claim();
+      })
+  );
+});
+
+// Estrategia Cache First para recursos estáticos
+const cacheFirst = async (request, cacheName) => {
+  const cache = await caches.open(cacheName);
+  const cached = await cache.match(request);
+  if (cached) {
+    return cached;
+  }
+  try {
+    const response = await fetch(request);
+    if (response.ok) {
+      cache.put(request, response.clone());
+    }
+    return response;
+  } catch (error) {
+    console.error('[SW Firma] Fetch failed:', error);
+    throw error;
+  }
+};
+
+// Estrategia Network First para API
+const networkFirst = async (request, cacheName, timeout = 5000) => {
+  const cache = await caches.open(cacheName);
+  
+  try {
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Network timeout')), timeout);
+    });
+    
+    const fetchPromise = fetch(request);
+    const response = await Promise.race([fetchPromise, timeoutPromise]);
+    
+    if (response.ok) {
+      cache.put(request, response.clone());
+    }
+    return response;
+  } catch (error) {
+    console.log('[SW Firma] Network failed, trying cache...');
+    const cached = await cache.match(request);
+    if (cached) {
+      return cached;
+    }
+    throw error;
+  }
+};
+
+// Estrategia Stale While Revalidate para assets dinámicos
+const staleWhileRevalidate = async (request, cacheName) => {
+  const cache = await caches.open(cacheName);
+  const cached = await cache.match(request);
+  
+  const fetchPromise = fetch(request).then((response) => {
+    if (response.ok) {
+      cache.put(request, response.clone());
+    }
+    return response;
+  }).catch(() => cached);
+
+  return cached || fetchPromise;
+};
+
+// Interceptar las peticiones
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  const url = new URL(request.url);
+
+  // Ignorar peticiones que no sean GET
+  if (request.method !== 'GET') {
+    return;
+  }
+
+  // Solo interceptar peticiones del mismo origen
+  if (url.origin !== self.location.origin) {
+    return;
+  }
+
+  // SSE (Server-Sent Events) - No cachear, siempre red
+  if (url.pathname.includes('/api/firma-movil/stream')) {
+    return; // Dejar pasar sin interceptar
+  }
+
+  // API de firma - Network First con timeout corto
+  if (url.pathname.includes('/api/firma-movil/') || 
+      url.pathname.includes('/material-movimientos/') && url.pathname.includes('/firmar-remoto')) {
+    event.respondWith(networkFirst(request, API_CACHE, 10000));
+    return;
+  }
+
+  // Imágenes - Cache First
+  if (request.destination === 'image' || /\.(png|jpg|jpeg|svg|gif|webp|ico)$/.test(url.pathname)) {
+    event.respondWith(cacheFirst(request, IMAGE_CACHE));
+    return;
+  }
+
+  // Assets de build (JS, CSS) - Stale While Revalidate
+  if (url.pathname.startsWith(`${BASE_URL}/build/`) || 
+      /\.(js|css)$/.test(url.pathname)) {
+    event.respondWith(staleWhileRevalidate(request, RUNTIME_CACHE));
+    return;
+  }
+
+  // Página principal de firmamovil - Network First
+  if (url.pathname === `${BASE_URL}/firmamovil` || 
+      url.pathname === `${BASE_URL}/firmamovil/`) {
+    event.respondWith(networkFirst(request, CACHE_NAME, 5000));
+    return;
+  }
+
+  // Manifest - Cache First
+  if (url.pathname.includes('manifest')) {
+    event.respondWith(cacheFirst(request, CACHE_NAME));
+    return;
+  }
+
+  // Por defecto - Network First
+  event.respondWith(networkFirst(request, RUNTIME_CACHE, 5000));
+});
+
+// Sincronización en segundo plano
+self.addEventListener('sync', (event) => {
+  console.log('[SW Firma] Background sync:', event.tag);
+  
+  if (event.tag === 'sync-firmas') {
+    event.waitUntil(syncFirmas());
+  }
+});
+
+async function syncFirmas() {
+  try {
+    console.log('[SW Firma] Syncing pending signatures...');
+    const db = await openIndexedDB();
+    const tx = db.transaction('firmas-pendientes', 'readonly');
+    const store = tx.objectStore('firmas-pendientes');
+    const firmas = await getAllFromStore(store);
+    
+    for (let firma of firmas) {
+      try {
+        const response = await fetch(`${BASE_URL}/material-movimientos/${firma.movimientoId}/firmar-remoto`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(firma.data)
+        });
+        
+        if (response.ok) {
+          // Eliminar firma sincronizada
+          const txDelete = db.transaction('firmas-pendientes', 'readwrite');
+          await txDelete.objectStore('firmas-pendientes').delete(firma.id);
+          console.log('[SW Firma] Firma sincronizada:', firma.id);
+        }
+      } catch (err) {
+        console.error('[SW Firma] Error sincronizando firma individual:', err);
+      }
+    }
+  } catch (error) {
+    console.error('[SW Firma] Sync failed:', error);
+    throw error;
+  }
+}
+
+function openIndexedDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('firma-movil-db', 1);
+    
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+    
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains('firmas-pendientes')) {
+        db.createObjectStore('firmas-pendientes', { keyPath: 'id', autoIncrement: true });
+      }
+    };
+  });
+}
+
+function getAllFromStore(store) {
+  return new Promise((resolve, reject) => {
+    const request = store.getAll();
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+// Manejo de mensajes desde la aplicación
+self.addEventListener('message', (event) => {
+  console.log('[SW Firma] Message received:', event.data);
+  
+  if (event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+  
+  if (event.data.type === 'CLEAR_CACHE') {
+    event.waitUntil(
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames
+            .filter(name => name.startsWith('firma-movil-'))
+            .map((cacheName) => caches.delete(cacheName))
+        );
+      })
+    );
+  }
+});
+
+// Manejo de notificaciones push (opcional para futuras funcionalidades)
+self.addEventListener('push', (event) => {
+  console.log('[SW Firma] Push received:', event);
+  
+  let data = {
+    title: 'Firma Móvil',
+    body: 'Nueva solicitud de firma',
+    icon: `${BASE_URL}/images/icons/firma-icon-192x192.png`,
+    badge: `${BASE_URL}/images/icons/firma-icon-96x96.png`,
+    tag: 'firma-solicitud',
+    requireInteraction: true,
+  };
+
+  if (event.data) {
+    try {
+      data = { ...data, ...event.data.json() };
+    } catch (e) {
+      data.body = event.data.text();
+    }
+  }
+
+  const options = {
+    body: data.body,
+    icon: data.icon,
+    badge: data.badge,
+    tag: data.tag,
+    requireInteraction: data.requireInteraction,
+    vibrate: [200, 100, 200],
+    data: { url: `${BASE_URL}/firmamovil` }
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, options)
+  );
+});
+
+// Manejo de clicks en notificaciones
+self.addEventListener('notificationclick', (event) => {
+  console.log('[SW Firma] Notification clicked');
+  
+  event.notification.close();
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then((clientList) => {
+        // Buscar si ya hay una ventana abierta con firmamovil
+        for (const client of clientList) {
+          if (client.url.includes('firmamovil') && 'focus' in client) {
+            return client.focus();
+          }
+        }
+        // Si no hay ninguna ventana abierta, abrir una nueva
+        if (clients.openWindow) {
+          return clients.openWindow(`${BASE_URL}/firmamovil`);
+        }
+      })
+  );
+});
+
+console.log('[SW Firma] Service Worker loaded');

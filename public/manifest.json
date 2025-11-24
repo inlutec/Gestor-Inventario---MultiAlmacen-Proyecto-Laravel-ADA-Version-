@@ -1,0 +1,168 @@
+{
+  "_AlmacenSelector-CizPyq94.js": {
+    "file": "assets/AlmacenSelector-CizPyq94.js",
+    "name": "AlmacenSelector",
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
+  "_HistorialPeticionModal-CFzYF9Dg.js": {
+    "file": "assets/HistorialPeticionModal-CFzYF9Dg.js",
+    "name": "HistorialPeticionModal",
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
+  "resources/css/app.css": {
+    "file": "assets/app-C-m8usPD.css",
+    "src": "resources/css/app.css",
+    "isEntry": true
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-BPJ9pn1T.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true,
+    "dynamicImports": [
+      "resources/js/views/MaterialAlbaranPublico.vue",
+      "resources/js/views/MaterialPeticionPublica.vue",
+      "resources/js/views/Login.vue",
+      "resources/js/layouts/MainLayout.vue",
+      "resources/js/views/MaterialReferencias.vue",
+      "resources/js/views/MaterialExistencias.vue",
+      "resources/js/views/MaterialMovimientos.vue",
+      "resources/js/views/MaterialHistorico.vue",
+      "resources/js/views/MaterialPeticiones.vue",
+      "resources/js/views/SolicitudesReposicion.vue",
+      "resources/js/views/Configuracion.vue",
+      "resources/js/views/Perfil.vue"
+    ],
+    "css": [
+      "assets/app-CqG0vQ4Q.css"
+    ]
+  },
+  "resources/js/layouts/MainLayout.vue": {
+    "file": "assets/MainLayout-CP8KxeYe.js",
+    "name": "MainLayout",
+    "src": "resources/js/layouts/MainLayout.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js"
+    ],
+    "css": [
+      "assets/MainLayout-DA4dhMnO.css"
+    ]
+  },
+  "resources/js/views/Configuracion.vue": {
+    "file": "assets/Configuracion-4vHd4nnP.js",
+    "name": "Configuracion",
+    "src": "resources/js/views/Configuracion.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
+  "resources/js/views/Login.vue": {
+    "file": "assets/Login-BgPCYjaE.js",
+    "name": "Login",
+    "src": "resources/js/views/Login.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
+  "resources/js/views/MaterialAlbaranPublico.vue": {
+    "file": "assets/MaterialAlbaranPublico-BgMB7I-6.js",
+    "name": "MaterialAlbaranPublico",
+    "src": "resources/js/views/MaterialAlbaranPublico.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
+  "resources/js/views/MaterialExistencias.vue": {
+    "file": "assets/MaterialExistencias-DGnaxygx.js",
+    "name": "MaterialExistencias",
+    "src": "resources/js/views/MaterialExistencias.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AlmacenSelector-CizPyq94.js"
+    ]
+  },
+  "resources/js/views/MaterialHistorico.vue": {
+    "file": "assets/MaterialHistorico-Vhlf4ehr.js",
+    "name": "MaterialHistorico",
+    "src": "resources/js/views/MaterialHistorico.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_HistorialPeticionModal-CFzYF9Dg.js",
+      "_AlmacenSelector-CizPyq94.js"
+    ]
+  },
+  "resources/js/views/MaterialMovimientos.vue": {
+    "file": "assets/MaterialMovimientos-CnOA9a2o.js",
+    "name": "MaterialMovimientos",
+    "src": "resources/js/views/MaterialMovimientos.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AlmacenSelector-CizPyq94.js"
+    ]
+  },
+  "resources/js/views/MaterialPeticionPublica.vue": {
+    "file": "assets/MaterialPeticionPublica-DGYd7FHH.js",
+    "name": "MaterialPeticionPublica",
+    "src": "resources/js/views/MaterialPeticionPublica.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js"
+    ],
+    "css": [
+      "assets/MaterialPeticionPublica-Cd-wg7Hu.css"
+    ]
+  },
+  "resources/js/views/MaterialPeticiones.vue": {
+    "file": "assets/MaterialPeticiones-B7KqKXRU.js",
+    "name": "MaterialPeticiones",
+    "src": "resources/js/views/MaterialPeticiones.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_HistorialPeticionModal-CFzYF9Dg.js",
+      "_AlmacenSelector-CizPyq94.js"
+    ]
+  },
+  "resources/js/views/MaterialReferencias.vue": {
+    "file": "assets/MaterialReferencias-BFVlNacF.js",
+    "name": "MaterialReferencias",
+    "src": "resources/js/views/MaterialReferencias.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
+  "resources/js/views/Perfil.vue": {
+    "file": "assets/Perfil-BtUzTkUc.js",
+    "name": "Perfil",
+    "src": "resources/js/views/Perfil.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js"
+    ]
+  },
+  "resources/js/views/SolicitudesReposicion.vue": {
+    "file": "assets/SolicitudesReposicion-jXg1Fez1.js",
+    "name": "SolicitudesReposicion",
+    "src": "resources/js/views/SolicitudesReposicion.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js",
+      "_AlmacenSelector-CizPyq94.js"
+    ],
+    "css": [
+      "assets/SolicitudesReposicion-tn0RQdqM.css"
+    ]
+  }
+}

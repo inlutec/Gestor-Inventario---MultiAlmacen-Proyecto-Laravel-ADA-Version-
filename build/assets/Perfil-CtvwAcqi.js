@@ -1,0 +1,1 @@
+import{_ as s,c,a as t,k as a}from"./app-BWVfXBO5.js";const o={},n={class:"space-y-2"};function r(l,e){return a(),c("div",n,[...e[0]||(e[0]=[t("h1",{class:"text-2xl font-bold"},"Mi Perfil",-1),t("p",{class:"text-sm text-muted"},"Configuración de tu cuenta",-1)])])}const i=s(o,[["render",r]]);export{i as default};

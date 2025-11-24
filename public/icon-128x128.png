@@ -1,0 +1,17 @@
+<svg width="128" height="128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#006633;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00994d;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" fill="url(#grad)" rx="19.2"/>
+  <g transform="translate(64, 64)">
+    <rect x="-29.44" y="-15.36" width="60.16" height="34.56" fill="white" rx="1.92"/>
+    <rect x="-29.44" y="-15.36" width="60.16" height="10.24" fill="#e5e7eb" rx="1.92"/>
+    <rect x="-20.48" y="12.8" width="39.68" height="20.48" fill="white" stroke="#d1d5db" stroke-width="1.024" rx="1.024"/>
+    <rect x="-24.32" y="-24.32" width="49.92" height="10.24" fill="white" rx="1.024"/>
+    <circle cx="20.48" cy="-10.24" r="1.92" fill="#10b981"/>
+  </g>
+  <text x="64" y="115.2" font-family="Arial, sans-serif" font-size="10.24" font-weight="bold" fill="white" text-anchor="middle" opacity="0.9">JUNTA</text>
+</svg>
