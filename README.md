@@ -1526,7 +1526,7 @@ Licencia Libre
 
 ## 📝 Changelog
 
-### Versión 3.0.0 (Noviembre 2024)
+### Versión 3.0.0 (Noviembre 2025)
 - Sistema completo de gestión de inventario
 - Peticiones públicas de material
 - Dashboard con estadísticas
