@@ -34,6 +34,7 @@ Sistema web desarrollado para la **Junta de Andalucía** que permite la gestión
 - **Mapas**: Leaflet.js
 - **Gráficos**: Chart.js
 - **PWA**: Service Worker + Manifest
+- **Comunicación en Tiempo Real**: Server-Sent Events (SSE) para firma móvil
 
 ---
 
@@ -122,7 +123,7 @@ Sistema web desarrollado para la **Junta de Andalucía** que permite la gestión
 - **Casos de uso**: Firmas presenciales, firmas remotas sin compartir enlaces, múltiples dispositivos simultáneos
 - **Seguridad**: ID de sesión único, expiración automática de sesiones (24 horas), validación de firmas
 
-### 9. Sistema de Backups
+### 10. Sistema de Backups
 - Backups automáticos de la base de datos
 - Restauración desde interfaz web
 - Exportación/importación de datos
@@ -393,6 +394,31 @@ server {
     # Fallback para Laravel routing
     location @gestionmaterial_fallback {
         rewrite ^/gestionmaterial/(.*)$ /gestionmaterial/index.php?$query_string last;
+    }
+    
+    # Configuración específica para SSE (Server-Sent Events) - Firma móvil
+    location /gestionmaterial/api/firma-movil/stream {
+        alias /var/www/gestor-inventario-material/public/;
+        try_files $uri @gestionmaterial_fallback;
+        
+        # Configuración para SSE
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+        
+        # Headers SSE
+        add_header Cache-Control no-cache;
+        add_header X-Accel-Buffering no;
+        
+        # Configuración para PHP
+        location ~ \.php$ {
+            fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
+            fastcgi_index index.php;
+            fastcgi_param SCRIPT_FILENAME $request_filename;
+            fastcgi_param PATH_INFO $fastcgi_path_info;
+            include fastcgi_params;
+        }
     }
 }
 ```
@@ -1015,6 +1041,15 @@ WHERE TABLE_SCHEMA = 'nombre_base_datos';
 #### Firmar Movimiento
 - **Desde la aplicación**: El receptor puede firmar desde su cuenta
 - **Enlace público**: Acceder al enlace y firmar sin autenticación
+- **Firma móvil remota (SSE)**: 
+  - Abrir la página de firma móvil (`/firmamovil`) en un dispositivo móvil
+  - Se genera un ID de sesión único de 4 dígitos
+  - El dispositivo se conecta al stream SSE y queda en espera
+  - Desde la aplicación web, seleccionar "Firmar con móvil" e introducir el ID de sesión
+  - La solicitud de firma se envía instantáneamente al dispositivo móvil mediante SSE
+  - El usuario firma en el canvas táctil del móvil
+  - La firma se envía de vuelta y se guarda automáticamente
+  - **Ventajas**: No requiere compartir enlaces, funciona en tiempo real, ideal para firmas presenciales
 - Se requiere firma del emisor y receptor para salidas
 - Solo se requiere firma del receptor para entradas
 
