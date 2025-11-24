@@ -431,13 +431,14 @@ class DashboardController extends Controller
             ->select(
                 'e.id',
                 'e.referencia',
+                'e.datos',
                 DB::raw('COUNT(dp.id) as total_solicitudes'),
                 DB::raw('SUM(dp.cantidad) as total_cantidad')
             )
             ->where('p.tipo', 'peticion')
             ->whereMonth('p.fecha', now()->month)
             ->whereYear('p.fecha', now()->year)
-            ->groupBy('e.id', 'e.referencia')
+            ->groupBy('e.id', 'e.referencia', 'e.datos')
             ->orderBy('total_solicitudes', 'desc')
             ->limit(10);
 
@@ -449,9 +450,15 @@ class DashboardController extends Controller
         $resultados = $query->get();
 
         return $resultados->map(function($item) {
+            $datos = json_decode($item->datos, true) ?? [];
+            $nombre = $datos['nombre'] ?? 'Sin nombre';
+            $descripcion = $datos['descripcion'] ?? null;
+            
             return [
                 'id' => $item->id,
-                'referencia' => $item->referencia,
+                'referencia' => $item->referencia ?? 'Sin referencia',
+                'nombre' => $nombre,
+                'descripcion' => $descripcion,
                 'total_solicitudes' => $item->total_solicitudes,
                 'total_cantidad' => $item->total_cantidad,
             ];

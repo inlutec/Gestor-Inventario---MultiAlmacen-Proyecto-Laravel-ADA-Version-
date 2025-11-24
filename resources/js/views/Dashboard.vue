@@ -398,23 +398,34 @@
         </div>
         <div class="p-6">
           <div class="space-y-4">
-            <div v-for="(material, idx) in materialesMasSolicitados" :key="idx" class="flex items-center gap-4 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+            <div v-for="(material, idx) in materialesMasSolicitados" :key="material.id || idx" class="flex items-center gap-4 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
               <div class="h-12 w-12 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center flex-shrink-0 shadow-md">
                 <span class="text-white font-bold text-lg">{{ idx + 1 }}</span>
               </div>
-              <div class="flex-1">
+              <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between mb-2">
-                  <div>
-                    <span class="text-sm font-semibold text-gray-900">{{ material.referencia }}</span>
-                    <span v-if="material.descripcion" class="text-xs text-gray-500 ml-2">- {{ material.descripcion }}</span>
+                  <div class="flex-1 min-w-0 pr-2">
+                    <div class="text-sm font-semibold text-gray-900 truncate" :title="material.nombre">
+                      {{ material.nombre || 'Sin nombre' }}
+                    </div>
+                    <div class="flex items-center gap-2 mt-1">
+                      <span v-if="material.referencia" class="text-xs text-gray-500 font-medium">{{ material.referencia }}</span>
+                      <span v-if="material.descripcion" class="text-xs text-gray-400 truncate">- {{ material.descripcion }}</span>
+                    </div>
                   </div>
-                  <span class="text-lg font-bold text-amber-600">{{ material.total_solicitudes }}</span>
+                  <div class="flex flex-col items-end flex-shrink-0">
+                    <span class="text-lg font-bold text-amber-600">{{ material.total_solicitudes }}</span>
+                    <span class="text-xs text-gray-500">solicitudes</span>
+                  </div>
                 </div>
                 <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
                   <div class="h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-full transition-all duration-500" 
                        :style="{width: (material.total_solicitudes / maxTopMateriales * 100) + '%'}"></div>
                 </div>
-                <div class="mt-1 text-xs text-gray-500">{{ Math.round(material.total_solicitudes / maxTopMateriales * 100) }}% del total</div>
+                <div class="mt-1 flex items-center justify-between text-xs text-gray-500">
+                  <span>{{ Math.round(material.total_solicitudes / maxTopMateriales * 100) }}% del total</span>
+                  <span v-if="material.total_cantidad" class="text-gray-400">{{ material.total_cantidad }} unidades</span>
+                </div>
               </div>
             </div>
           </div>
