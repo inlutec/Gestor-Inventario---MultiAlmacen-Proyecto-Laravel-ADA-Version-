@@ -1595,25 +1595,6 @@ client_max_body_size 10M;
 
 ---
 
-## 👥 Contribución
-
-### Flujo de Trabajo
-
-1. Crear rama desde `main`:
-   ```bash
-   git checkout -b feature/nueva-funcionalidad
-   ```
-
-2. Desarrollar y probar cambios
-
-3. Commit con mensaje descriptivo:
-   ```bash
-   git commit -m "feat: añadir nueva funcionalidad X"
-   ```
-
-4. Push y crear Pull Request
-
-5. Revisión y merge
 
 ### Estándares de Código
 
@@ -1637,14 +1618,12 @@ Antes de hacer commit:
 Para problemas o dudas:
 1. Revisar esta documentación
 2. Revisar logs: `storage/logs/laravel.log`
-3. Consultar con el equipo de desarrollo
-4. Revisar issues en el repositorio
 
 ---
 
 ## 📄 Licencia
 
-Propietaria - Junta de Andalucía
+Licencia Libre
 
 ---
 
@@ -1658,9 +1637,9 @@ Propietaria - Junta de Andalucía
 - **Firma móvil remota con SSE (Server-Sent Events)**
 - Gestión multi-almacén
 - Integración con provincias y sedes
-- PWA funcional
+- PWA funcional (en desarrollo para mejorar visualización)
 - Sistema de notificaciones
-- Backups automáticos
+- Backups automáticos (en desarrollo)
 
 ---
 
