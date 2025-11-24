@@ -126,7 +126,7 @@ Sistema web desarrollado para la **Junta de Andalucía** que permite la gestión
 ### Cliente
 - Navegador moderno (Chrome, Firefox, Safari, Edge)
 - JavaScript habilitado
-- Para PWA: Navegador compatible con Service Workers
+- Para PWA: Navegador compatible con Service Workers (en desarrollo)
 
 ---
 
@@ -1518,19 +1518,9 @@ Antes de hacer commit:
 
 ---
 
-## 📞 Soporte
-
-Para problemas o dudas:
-1. Revisar esta documentación
-2. Revisar logs: `storage/logs/laravel.log`
-3. Consultar con el equipo de desarrollo
-4. Revisar issues en el repositorio
-
----
-
 ## 📄 Licencia
 
-Propietaria - Junta de Andalucía
+Licencia Libre
 
 ---
 
@@ -1569,7 +1559,6 @@ Propietaria - Junta de Andalucía
 
 ---
 
-**Última actualización**: Noviembre 2024  
+**Última actualización**: Noviembre 2025  
 **Versión del documento**: 1.0  
-**Mantenido por**: Equipo de Desarrollo - Junta de Andalucía
-
+**Mantenido por**: Joaquín Navajas Cordobes
