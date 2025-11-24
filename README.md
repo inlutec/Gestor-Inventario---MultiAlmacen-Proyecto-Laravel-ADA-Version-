@@ -1660,6 +1660,8 @@ Propietaria - Junta de Andalucía
 - [Laravel Sanctum](https://laravel.com/docs/11.x/sanctum)
 - [Leaflet.js Documentation](https://leafletjs.com/reference.html) - Para el mapa de almacenes en la web pública
 - [OpenStreetMap](https://www.openstreetmap.org/) - Proveedor de tiles del mapa
+- [Server-Sent Events (SSE) MDN](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events) - Para la firma móvil remota
+- [EventSource API](https://developer.mozilla.org/en-US/docs/Web/API/EventSource) - API del navegador para SSE
 
 ### Archivos de Configuración Importantes
 - `.env` - Variables de entorno
