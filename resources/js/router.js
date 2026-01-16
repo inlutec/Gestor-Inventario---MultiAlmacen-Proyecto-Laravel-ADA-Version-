@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHistory, createWebHashHistory } from 'vue-router';
 import { useAuthStore } from './stores/auth';
 
 const routes = [
@@ -19,6 +19,12 @@ const routes = [
         path: '/peticion',
         name: 'PeticionPublica',
         component: () => import('./views/MaterialPeticionPublica.vue'),
+        meta: { public: true },
+    },
+    {
+        path: '/seguimiento-pedido/:token',
+        name: 'PedidoSeguimientoPublico',
+        component: () => import('./views/PedidoSeguimientoPublico.vue'),
         meta: { public: true },
     },
     // NOTA: /firmamovil ya NO está en Vue Router - es una PWA independiente servida por Laravel
@@ -94,7 +100,7 @@ const routes = [
 ];
 
 const router = createRouter({
-    history: createWebHistory('/gestionmaterial/'),
+    history: createWebHashHistory('/gestionmaterial/'),
     routes,
 });
 

@@ -12,6 +12,7 @@ use App\Services\PushNotificationService;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class MaterialPeticionController extends Controller
 {
@@ -237,7 +238,7 @@ class MaterialPeticionController extends Controller
                 'telefono_solicitante' => $validated['telefono_solicitante'] ?? null,
                 'sede_id' => $validated['sede_id'] ?? null,
                 'departamento_id' => $validated['departamento_id'] ?? null,
-                'observaciones' => $validated['justificacion'],
+                'observaciones' => $validated['justificacion'] ?? null,
                 'datos_personalizados' => $validated['campos_personalizados'] ?? null,
             ]);
 
@@ -269,15 +270,19 @@ class MaterialPeticionController extends Controller
             ]);
 
             // Enviar notificación push a administradores
+            $justificacionTexto = $validated['justificacion'] ?? 'Sin justificación';
             $this->pushService->sendToAdmins(
                 '🔔 Nueva petición de material',
-                "Petición de {$validated['usuario_solicitante']}: {$textoMateriales} - {$validated['justificacion']}",
+                "Petición de {$validated['usuario_solicitante']}: {$textoMateriales} - {$justificacionTexto}",
                 [
                     'tag' => 'peticion-' . $pedido->id,
                     'url' => '/gestionmaterial/peticiones',
                     'requireInteraction' => true
                 ]
             );
+
+            // Generar token de seguimiento público
+            $pedido->generarTokenSeguimiento(90); // 90 días de validez
 
             // Registrar en historial
             \App\Models\PedidoHistorial::registrarCambio(
@@ -288,21 +293,56 @@ class MaterialPeticionController extends Controller
                 [
                     'numero_pedido' => $pedido->numero_pedido,
                     'cantidad_materiales' => $cantidadMateriales,
-                    'justificacion' => $validated['justificacion'],
+                    'justificacion' => $validated['justificacion'] ?? null,
                 ]
             );
 
-            // Enviar notificación por email
-            $pedidoConRelaciones = $pedido->load(['detalles.entidad', 'sede', 'departamento']);
-            $this->notificationService->notificarPeticionCreada($pedidoConRelaciones);
-
             DB::commit();
 
-            return response()->json([
+            // Preparar respuesta
+            $response = response()->json([
                 'success' => true,
                 'message' => 'Petición enviada correctamente',
                 'data' => $pedido
             ]);
+
+            // Enviar notificación por email
+            // Usar fastcgi_finish_request() si está disponible para enviar respuesta primero
+            // Si no está disponible, ejecutar el email normalmente (no debería causar timeout ahora)
+            try {
+                // Cargar relaciones necesarias antes de enviar respuesta
+                $pedidoConRelaciones = $pedido->load(['detalles.entidad', 'sede', 'departamento']);
+                
+                // Si fastcgi_finish_request está disponible, enviar respuesta primero
+                if (function_exists('fastcgi_finish_request')) {
+                    // Enviar respuesta al cliente inmediatamente
+                    $response->send();
+                    fastcgi_finish_request();
+                    
+                    // Ahora ejecutar el email sin bloquear la respuesta
+                    // Asegurarse de que la configuración SMTP se aplique correctamente
+                    // incluso después de fastcgi_finish_request()
+                    try {
+                        $this->notificationService->notificarPeticionCreada($pedidoConRelaciones);
+                    } catch (\Exception $emailError) {
+                        \Log::error('Error enviando notificación de petición creada (después de fastcgi_finish_request): ' . $emailError->getMessage());
+                        \Log::error('Stack trace: ' . $emailError->getTraceAsString());
+                    }
+                    
+                    // No retornar nada ya que la respuesta ya se envió
+                    return;
+                } else {
+                    // Si no hay fastcgi_finish_request, ejecutar email normalmente
+                    // pero después del commit, así que no debería causar problemas
+                    $this->notificationService->notificarPeticionCreada($pedidoConRelaciones);
+                }
+            } catch (\Exception $e) {
+                // Log del error pero no fallar la petición
+                \Log::error('Error preparando notificación de petición creada: ' . $e->getMessage());
+                \Log::error('Stack trace: ' . $e->getTraceAsString());
+            }
+
+            return $response;
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -668,7 +708,8 @@ class MaterialPeticionController extends Controller
                     'fecha_relativa' => $entrada->fecha->diffForHumans(),
                     'datos_antes' => $entrada->datos_antes,
                     'datos_despues' => $entrada->datos_despues,
-                    'ip_address' => $entrada->ip_address
+                    'ip_address' => $entrada->ip_address,
+                    'visible_publico' => $entrada->visible_publico
                 ];
             });
 
@@ -676,5 +717,113 @@ class MaterialPeticionController extends Controller
             'success' => true,
             'data' => $historial
         ]);
+    }
+
+    /**
+     * Agregar comentario a un pedido desde el historial
+     */
+    public function agregarComentario(Request $request, $id)
+    {
+        try {
+            // Log para debugging
+            Log::info('Agregar comentario - Inicio', [
+                'pedido_id' => $id,
+                'tipo_id' => gettype($id),
+                'usuario_id' => auth()->id()
+            ]);
+
+            $validated = $request->validate([
+                'comentario' => 'required|string|max:1000',
+                'notificar_solicitante' => 'boolean'
+            ]);
+
+            // Convertir a entero si es string
+            $pedidoId = is_numeric($id) ? (int)$id : $id;
+            
+            // Buscar el pedido con mejor manejo de errores
+            $pedido = Pedido::find($pedidoId);
+            
+            if (!$pedido) {
+                // Intentar buscar por número de pedido si el ID no funciona
+                $pedidoPorNumero = Pedido::where('numero_pedido', $id)->first();
+                
+                Log::warning('Intento de agregar comentario a pedido inexistente', [
+                    'pedido_id_solicitado' => $id,
+                    'pedido_id_tipo' => gettype($id),
+                    'pedido_id_convertido' => $pedidoId,
+                    'usuario_id' => auth()->id()
+                ]);
+                
+                if ($pedidoPorNumero) {
+                    $pedido = $pedidoPorNumero;
+                    Log::info('Pedido encontrado por número de pedido', ['pedido_id' => $pedido->id]);
+                } else {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'El pedido con ID ' . $id . ' no existe o no se encontró. ID recibido: ' . $id . ' (tipo: ' . gettype($id) . ')'
+                    ], 404);
+                }
+            }
+            
+            DB::beginTransaction();
+            try {
+                // Registrar comentario en el historial
+                $historial = \App\Models\PedidoHistorial::registrarCambio(
+                    $pedido->id,
+                    'comentario',
+                    $validated['comentario'],
+                    null,
+                    null,
+                    auth()->id(),
+                    true // visible_publico = true para que lo vea el solicitante
+                );
+
+                // Si se solicita, notificar al solicitante
+                if ($validated['notificar_solicitante'] ?? false) {
+                    $pedidoConRelaciones = $pedido->load(['detalles.entidad', 'sede', 'departamento']);
+                    $this->notificationService->notificarComentarioPedido(
+                        $pedidoConRelaciones,
+                        $validated['comentario'],
+                        auth()->user()->nombre ?? 'Administrador'
+                    );
+                }
+
+                DB::commit();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Comentario agregado correctamente',
+                    'data' => $historial
+                ]);
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error('Error al agregar comentario', [
+                    'pedido_id' => $id,
+                    'error' => $e->getMessage()
+                ]);
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al agregar comentario: ' . $e->getMessage()
+                ], 500);
+            }
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Error inesperado al agregar comentario', [
+                'pedido_id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error inesperado: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

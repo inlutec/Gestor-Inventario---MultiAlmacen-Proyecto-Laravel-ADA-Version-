@@ -62,16 +62,42 @@ class SmtpConfig extends Model
     // Aplicar configuración SMTP a Laravel
     public function apply()
     {
-        // Configurar los valores en config
+        // PRIMERO: Limpiar todas las variables de entorno de MAIL para evitar interferencias
+        // Esto asegura que Laravel use los valores de config() en lugar de env()
+        $envVars = [
+            'MAIL_HOST',
+            'MAIL_PORT',
+            'MAIL_USERNAME',
+            'MAIL_PASSWORD',
+            'MAIL_ENCRYPTION',
+            'MAIL_FROM_ADDRESS',
+            'MAIL_FROM_NAME',
+            'MAIL_MAILER',
+        ];
+        
+        foreach ($envVars as $var) {
+            putenv($var);
+            if (isset($_ENV[$var])) {
+                unset($_ENV[$var]);
+            }
+            if (isset($_SERVER[$var])) {
+                unset($_SERVER[$var]);
+            }
+        }
+        
+        // SEGUNDO: Configurar los valores en config() - estos tienen prioridad sobre env()
+        $encryption = ($this->encryption === 'none' || empty($this->encryption)) ? null : $this->encryption;
+        
         config([
+            'mail.default' => 'smtp',
             'mail.mailers.smtp.host' => $this->host,
-            'mail.mailers.smtp.port' => $this->port,
-            'mail.mailers.smtp.encryption' => $this->encryption === 'none' ? null : $this->encryption,
+            'mail.mailers.smtp.port' => (int)$this->port,
+            'mail.mailers.smtp.encryption' => $encryption,
             'mail.from.address' => $this->from_address,
             'mail.from.name' => $this->from_name,
         ]);
 
-        // Solo configurar autenticación si hay username Y password
+        // TERCERO: Configurar autenticación si hay username Y password
         if (!empty($this->username) && !empty($this->password)) {
             config([
                 'mail.mailers.smtp.username' => $this->username,
@@ -80,17 +106,22 @@ class SmtpConfig extends Model
         } else {
             // Sin autenticación - desactivar completamente
             config([
-                'mail.mailers.smtp.username' => '',
-                'mail.mailers.smtp.password' => '',
+                'mail.mailers.smtp.username' => null,
+                'mail.mailers.smtp.password' => null,
             ]);
-            
-            // También limpiar variables de entorno para evitar que se usen
-            putenv('MAIL_USERNAME=');
-            putenv('MAIL_PASSWORD=');
         }
         
-        // Forzar recreación del mailer para que tome la nueva configuración
+        // CUARTO: Forzar recreación completa del mailer para que tome la nueva configuración
+        // Limpiar todas las instancias relacionadas con mail
         app()->forgetInstance('mail.manager');
         app()->forgetInstance(\Illuminate\Contracts\Mail\Mailer::class);
+        app()->forgetInstance(\Illuminate\Contracts\Mail\Factory::class);
+        app()->forgetInstance('swift.mailer');
+        app()->forgetInstance('swift.transport');
+        
+        // Limpiar cache de configuración si existe
+        if (app()->bound('cache')) {
+            app('cache')->forget('mail.config');
+        }
     }
 }

@@ -165,7 +165,7 @@
                   Sede
                 </label>
                 <select
-                  v-model="sedeSeleccionada"
+                  v-model="form.sede_id"
                   @change="manejarCambioSede"
                   class="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-junta-green-500 focus:border-junta-green-500 transition-colors bg-white"
                   style="min-height: 48px; font-size: 16px;"
@@ -183,7 +183,7 @@
                   Departamento
                 </label>
                 <select
-                  v-model="departamentoSeleccionado"
+                  v-model="form.departamento_id"
                   class="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-junta-green-500 focus:border-junta-green-500 transition-colors bg-white"
                   style="min-height: 48px; font-size: 16px;"
                 >
@@ -905,8 +905,6 @@ const departamentos = ref([]);
 const camposPersonalizados = ref([]);
 const provincias = ref([]); // Para el solicitante
 const provinciaSeleccionadaSolicitante = ref('');
-const sedeSeleccionada = ref('');
-const departamentoSeleccionado = ref('');
 
 // Variables para el mapa y almacén
 const almacenes = ref([]);
@@ -1000,6 +998,16 @@ const departamentoNombre = computed(() => {
   return dept ? dept.nombre : '';
 });
 
+// Watch para cargar departamentos cuando cambie la sede
+watch(() => form.value.sede_id, (nuevaSede) => {
+  if (nuevaSede) {
+    cargarDepartamentosSolicitante();
+  } else {
+    form.value.departamento_id = '';
+    departamentos.value = [];
+  }
+});
+
 const cargarSedes = async () => {
   try {
     const response = await axios.get('/sedes-publicas');
@@ -1031,13 +1039,13 @@ const cargarProvincias = async () => {
 
 // Cargar departamentos según la sede seleccionada (para el solicitante)
 const cargarDepartamentosSolicitante = async () => {
-  if (!sedeSeleccionada.value) {
+  if (!form.value.sede_id) {
     departamentos.value = [];
     return;
   }
 
   try {
-    const response = await axios.get(`/sedes-publicas/${sedeSeleccionada.value}/departamentos`);
+    const response = await axios.get(`/sedes-publicas/${form.value.sede_id}/departamentos`);
     departamentos.value = response.data || [];
   } catch (err) {
     console.error('Error al cargar departamentos:', err);
@@ -1047,8 +1055,8 @@ const cargarDepartamentosSolicitante = async () => {
 
 // Manejar cambio de provincia
 const manejarCambioProvincia = () => {
-  sedeSeleccionada.value = '';
-  departamentoSeleccionado.value = '';
+  form.value.sede_id = '';
+  form.value.departamento_id = '';
   departamentos.value = [];
   cargarSedesPorProvincia();
   cargarDepartamentosSolicitante();
@@ -1056,7 +1064,7 @@ const manejarCambioProvincia = () => {
 
 // Manejar cambio de sede
 const manejarCambioSede = () => {
-  departamentoSeleccionado.value = '';
+  form.value.departamento_id = '';
   departamentos.value = [];
   cargarDepartamentosSolicitante();
 };
@@ -1454,8 +1462,12 @@ const limpiarFormulario = () => {
 };
 
 const enviarPeticion = async () => {
-  if (!puedeEnviar.value) return;
+  if (!puedeEnviar.value) {
+    console.log('No se puede enviar - validación fallida');
+    return;
+  }
   
+  console.log('Iniciando envío de petición...');
   enviando.value = true;
   error.value = '';
   success.value = false;
@@ -1465,31 +1477,83 @@ const enviarPeticion = async () => {
     const materialesConStock = materialesSeleccionados.value.filter(m => !m.sin_stock);
     const materialesSinStock = materialesSeleccionados.value.filter(m => m.sin_stock);
 
+    console.log('Materiales con stock:', materialesConStock.length);
+    console.log('Materiales sin stock:', materialesSinStock.length);
+
+    // Validar que haya al menos un material
+    if (materialesConStock.length === 0 && materialesSinStock.length === 0) {
+      error.value = 'Debes seleccionar al menos un material.';
+      enviando.value = false;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     // 1. Enviar pedido normal para materiales con stock
     if (materialesConStock.length > 0) {
+      console.log('Enviando petición con materiales con stock...');
+      
+      // Construir payload limpio, solo con los campos necesarios
       const payloadPedido = {
-        ...form.value,
         materiales: materialesConStock.map(m => ({
           material_id: m.id,
-          cantidad: m.cantidad,
-          unidad: m.unidad
-        }))
+          cantidad: Number(m.cantidad),
+          unidad: m.unidad || 'ud'
+        })),
+        usuario_solicitante: form.value.usuario_solicitante,
+        email_solicitante: form.value.email_solicitante
       };
 
-      await axios.post('/peticiones', payloadPedido);
+      // Añadir campos opcionales solo si tienen valor
+      if (form.value.justificacion && form.value.justificacion.trim()) {
+        payloadPedido.justificacion = form.value.justificacion.trim();
+      }
+      if (form.value.telefono_solicitante && form.value.telefono_solicitante.trim()) {
+        payloadPedido.telefono_solicitante = form.value.telefono_solicitante.trim();
+      }
+      if (form.value.sede_id) {
+        payloadPedido.sede_id = form.value.sede_id;
+      }
+      if (form.value.departamento_id) {
+        payloadPedido.departamento_id = form.value.departamento_id;
+      }
+      if (form.value.campos_personalizados && Object.keys(form.value.campos_personalizados).length > 0) {
+        payloadPedido.campos_personalizados = form.value.campos_personalizados;
+      }
+
+      console.log('Payload a enviar:', JSON.stringify(payloadPedido, null, 2));
+
+      try {
+        const response = await axios.post('/peticiones', payloadPedido);
+        console.log('Respuesta recibida:', response.data);
+        
+        // Verificar respuesta
+        if (!response.data) {
+          throw new Error('No se recibió respuesta del servidor');
+        }
+        
+        if (response.data.success === false) {
+          throw new Error(response.data.message || 'Error al crear la petición');
+        }
+        
+        console.log('Petición creada exitosamente');
+      } catch (requestError) {
+        console.error('Error en la petición HTTP:', requestError);
+        throw requestError;
+      }
     }
 
     // 2. Crear solicitudes de reposición para materiales sin stock
     if (materialesSinStock.length > 0) {
+      console.log('Creando solicitudes de reposición...');
       for (const mat of materialesSinStock) {
         try {
           await axios.post('/solicitudes-reposicion-publicas', {
             entidad_id: mat.id,
-            cantidad_solicitada: mat.cantidad,
+            cantidad_solicitada: Number(mat.cantidad),
             usuario_solicitante: form.value.usuario_solicitante,
             email_solicitante: form.value.email_solicitante,
-            telefono_solicitante: form.value.telefono_solicitante,
-            notas: `Justificación: ${form.value.justificacion}\nSede: ${sedeNombre.value}\nDepartamento: ${departamentoNombre.value}\nAlmacén seleccionado: ${almacenSeleccionado.value?.nombre || 'No especificado'}`
+            telefono_solicitante: form.value.telefono_solicitante || null,
+            notas: `Justificación: ${form.value.justificacion || 'Sin justificación'}\nSede: ${sedeNombre.value || 'No especificada'}\nDepartamento: ${departamentoNombre.value || 'No especificado'}\nAlmacén seleccionado: ${almacenSeleccionado.value?.nombre || 'No especificado'}`
           });
         } catch (err) {
           console.error(`Error creando solicitud para ${mat.referencia}:`, err);
@@ -1498,6 +1562,7 @@ const enviarPeticion = async () => {
       }
     }
 
+    console.log('Proceso completado exitosamente');
     success.value = true;
     
     // Mostrar mensaje diferenciado
@@ -1533,6 +1598,7 @@ const enviarPeticion = async () => {
     mostrarPaso3.value = false;
     provinciaSeleccionada.value = '';
     almacenTemporal.value = '';
+    provinciaSeleccionadaSolicitante.value = '';
 
     // Scroll al inicio
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1542,10 +1608,51 @@ const enviarPeticion = async () => {
       success.value = false;
     }, 10000);
   } catch (err) {
-    console.error('Error al enviar petición:', err);
-    error.value = err.response?.data?.message || 'Error al enviar la petición. Por favor, inténtalo de nuevo.';
+    console.error('Error completo al enviar petición:', err);
+    console.error('Error response:', err.response);
+    console.error('Error request:', err.request);
+    console.error('Error message:', err.message);
+    
+    // Mejor manejo de errores
+    let errorMessage = 'Error al enviar la petición. Por favor, inténtalo de nuevo.';
+    
+    if (err.response) {
+      // Error de respuesta del servidor
+      console.error('Error response data:', err.response.data);
+      
+      // Manejo específico de errores 504 (Gateway Timeout)
+      if (err.response.status === 504) {
+        errorMessage = 'El servidor está tardando demasiado en responder. Esto puede deberse a una carga alta del sistema. Por favor, inténtalo de nuevo en unos momentos. Si el problema persiste, contacta con el administrador del sistema.';
+      } else if (err.response.status === 503) {
+        errorMessage = 'El servicio no está disponible temporalmente. Por favor, inténtalo más tarde.';
+      } else if (err.response.data) {
+        if (err.response.data.message) {
+          errorMessage = err.response.data.message;
+        } else if (err.response.data.errors) {
+          // Errores de validación
+          const validationErrors = Object.values(err.response.data.errors).flat();
+          errorMessage = validationErrors.join(', ');
+        } else if (err.response.status === 422) {
+          errorMessage = 'Error de validación. Por favor, revisa los datos ingresados.';
+        } else if (err.response.status >= 500) {
+          errorMessage = 'Error del servidor. Por favor, inténtalo más tarde o contacta con el administrador.';
+        }
+      } else if (err.response.status >= 500) {
+        errorMessage = 'Error del servidor. Por favor, inténtalo más tarde o contacta con el administrador.';
+      }
+    } else if (err.request) {
+      // Error de red
+      console.error('Error de red - no se recibió respuesta');
+      errorMessage = 'Error de conexión. Por favor, verifica tu conexión a internet e inténtalo de nuevo.';
+    } else {
+      // Otro tipo de error
+      errorMessage = err.message || errorMessage;
+    }
+    
+    error.value = errorMessage;
     window.scrollTo({ top: 0, behavior: 'smooth' });
   } finally {
+    console.log('Finalizando - reseteando estado enviando');
     enviando.value = false;
   }
 };

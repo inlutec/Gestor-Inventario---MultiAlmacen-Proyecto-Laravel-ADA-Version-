@@ -19,6 +19,7 @@ class PedidoHistorial extends Model
         'datos_antes',
         'datos_despues',
         'ip_address',
+        'visible_publico',
         'fecha',
     ];
 
@@ -26,6 +27,7 @@ class PedidoHistorial extends Model
         'datos_antes' => 'array',
         'datos_despues' => 'array',
         'fecha' => 'datetime',
+        'visible_publico' => 'boolean',
     ];
 
     /**
@@ -47,7 +49,7 @@ class PedidoHistorial extends Model
     /**
      * Registrar un cambio en el historial
      */
-    public static function registrarCambio($pedidoId, $accion, $descripcion, $datosAntes = null, $datosDespues = null, $usuarioId = null)
+    public static function registrarCambio($pedidoId, $accion, $descripcion, $datosAntes = null, $datosDespues = null, $usuarioId = null, $visiblePublico = false)
     {
         return self::create([
             'pedido_id' => $pedidoId,
@@ -57,6 +59,7 @@ class PedidoHistorial extends Model
             'datos_antes' => $datosAntes,
             'datos_despues' => $datosDespues,
             'ip_address' => request()->ip(),
+            'visible_publico' => $visiblePublico,
             'fecha' => now(),
         ]);
     }

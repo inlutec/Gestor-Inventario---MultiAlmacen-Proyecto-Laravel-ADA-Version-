@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Pedido extends Model
 {
@@ -36,6 +37,8 @@ class Pedido extends Model
         'fecha_aprobacion',
         'cantidad_aprobada',
         'movimiento_id',
+        'token_seguimiento',
+        'token_seguimiento_expira',
     ];
 
     protected $casts = [
@@ -46,6 +49,7 @@ class Pedido extends Model
         'fecha_recepcion' => 'date',
         'fecha_aprobacion' => 'datetime',
         'aprobacion_parcial' => 'boolean',
+        'token_seguimiento_expira' => 'datetime',
     ];
 
     public function detalles()
@@ -84,5 +88,27 @@ class Pedido extends Model
     public function historial()
     {
         return $this->hasMany(PedidoHistorial::class, 'pedido_id');
+    }
+
+    /**
+     * Generar token de seguimiento público
+     */
+    public function generarTokenSeguimiento($diasExpiracion = 90)
+    {
+        $this->token_seguimiento = Str::random(64);
+        $this->token_seguimiento_expira = now()->addDays($diasExpiracion);
+        $this->save();
+        
+        return $this->token_seguimiento;
+    }
+
+    /**
+     * Verificar si el token de seguimiento es válido
+     */
+    public function tokenSeguimientoEsValido(): bool
+    {
+        return $this->token_seguimiento &&
+               $this->token_seguimiento_expira &&
+               $this->token_seguimiento_expira->isFuture();
     }
 }

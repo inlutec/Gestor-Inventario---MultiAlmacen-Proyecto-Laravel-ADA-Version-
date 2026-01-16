@@ -9,6 +9,7 @@ use App\Http\Controllers\SedeController;
 use App\Http\Controllers\MaterialMovimientoController;
 use App\Http\Controllers\AlbaranPublicoController;
 use App\Http\Controllers\MaterialPeticionController;
+use App\Http\Controllers\PedidoSeguimientoController;
 use App\Http\Controllers\ConfigController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\FirmaMovilController;
@@ -33,6 +34,9 @@ Route::post('/albaran/{token}/subir-pdf-firmado', [MaterialMovimientoController:
 // Peticiones públicas (sin autenticación)
 Route::post('/peticiones', [MaterialPeticionController::class, 'store']);
 Route::get('/materiales-disponibles', [MaterialPeticionController::class, 'materialesDisponibles']);
+
+// Seguimiento público de pedidos (sin autenticación)
+Route::get('/seguimiento-pedido/{token}', [PedidoSeguimientoController::class, 'ver']);
 
 // Solicitudes de reposición públicas (sin autenticación, desde web pública)
 Route::post('/solicitudes-reposicion-publicas', [\App\Http\Controllers\SolicitudReposicionController::class, 'storePublico']);
@@ -102,6 +106,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/peticiones', [MaterialPeticionController::class, 'index'])->middleware('filter.almacen');
     Route::post('/peticiones/{id}/aprobar', [MaterialPeticionController::class, 'aprobar']);
     Route::post('/peticiones/{id}/denegar', [MaterialPeticionController::class, 'denegar']);
+    Route::post('/peticiones/{id}/comentario', [MaterialPeticionController::class, 'agregarComentario']);
     Route::get('/peticiones/{id}/historial', [MaterialPeticionController::class, 'historial']);
     Route::get('/peticiones/{id}/historial-auditoria', [MaterialPeticionController::class, 'obtenerHistorialAuditoria']);
     Route::delete('/peticiones/{id}', [MaterialPeticionController::class, 'destroy']);
@@ -189,6 +194,10 @@ Route::middleware('auth:sanctum')->group(function () {
         
         // Logotipos
         Route::post('/config/upload-logo/{tipo}', [ConfigController::class, 'uploadLogo']);
+        
+        // Configuración de aplicación (dominio/IP)
+        Route::get('/config/app-config', [ConfigController::class, 'getAppConfig']);
+        Route::put('/config/app-config', [ConfigController::class, 'updateAppConfig']);
         
         // Configuración de Notificaciones por Email
         Route::get('/notification-settings', [\App\Http\Controllers\NotificationSettingController::class, 'index']);

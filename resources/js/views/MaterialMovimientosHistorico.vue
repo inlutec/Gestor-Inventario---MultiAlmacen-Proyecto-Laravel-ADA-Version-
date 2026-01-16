@@ -251,6 +251,41 @@
               <strong>Observaciones:</strong>
               <p class="mt-1 text-gray-600">{{ selectedMovimiento.observaciones }}</p>
             </div>
+            
+            <!-- Comentarios del pedido asociado -->
+            <div v-if="selectedMovimiento.pedido && selectedMovimiento.pedido.comentarios && selectedMovimiento.pedido.comentarios.length > 0" class="mt-4 pt-4 border-t border-gray-200">
+              <h4 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <span>💬</span> Comentarios del Pedido #{{ selectedMovimiento.pedido.numero_pedido }}
+              </h4>
+              <div class="space-y-3">
+                <div v-for="comentario in selectedMovimiento.pedido.comentarios" :key="comentario.id" class="bg-blue-50 rounded-lg p-3 border border-blue-200">
+                  <div class="flex justify-between items-start mb-2">
+                    <div class="flex-1">
+                      <p class="text-sm text-gray-800 whitespace-pre-wrap">{{ comentario.descripcion }}</p>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2 text-xs text-gray-600">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <span v-if="comentario.usuario">{{ comentario.usuario.nombre }}</span>
+                    <span v-else class="italic">Sistema</span>
+                    <span class="text-gray-400">•</span>
+                    <span>{{ comentario.fecha }}</span>
+                    <span class="text-gray-400">•</span>
+                    <span class="text-gray-500">{{ comentario.fecha_relativa }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Comentarios de aprobación del pedido -->
+            <div v-if="selectedMovimiento.pedido && selectedMovimiento.pedido.comentarios_aprobacion" class="mt-4 pt-4 border-t border-gray-200">
+              <h4 class="font-semibold text-gray-900 mb-2">Comentarios de Aprobación</h4>
+              <div class="bg-yellow-50 rounded-lg p-3 border border-yellow-200">
+                <p class="text-sm text-gray-800 whitespace-pre-wrap">{{ selectedMovimiento.pedido.comentarios_aprobacion }}</p>
+              </div>
+            </div>
           </div>
           <div class="mt-6 flex justify-end space-x-3">
             <button

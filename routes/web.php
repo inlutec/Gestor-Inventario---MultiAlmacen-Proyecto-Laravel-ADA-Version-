@@ -68,6 +68,11 @@ Route::get('/firmamovil', function () {
     return view('firmamovil');
 })->name('firmamovil');
 
+// Ruta raíz - página de bienvenida pública
+Route::get('/', function () {
+    return view('app');
+});
+
 // Ruta de login nombrada para middleware de autenticación (SPA)
 Route::get('/login', function () {
     return view('app');

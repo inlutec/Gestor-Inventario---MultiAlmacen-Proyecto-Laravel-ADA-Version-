@@ -38,6 +38,11 @@ class MaterialMovimientoController extends Controller
                 'pedido.usuarioCreador',
                 'pedido.usuarioAprobador',
                 'pedido.detalles.entidad',
+                'pedido.historial' => function($q) {
+                    $q->where('accion', 'comentario')
+                      ->with('usuario:id,nombre,email')
+                      ->orderBy('fecha', 'desc');
+                },
                 'origenDepartamento.sede',
                 'destinoDepartamento.sede'
             ]);
@@ -129,7 +134,29 @@ class MaterialMovimientoController extends Controller
                         'estado' => $mov->estado,
                         'detalles' => $mov->detalles,
                         'firmas' => $mov->firmas,
-                        'pedido' => $mov->pedido,
+                        'pedido' => $mov->pedido ? [
+                            'id' => $mov->pedido->id,
+                            'numero_pedido' => $mov->pedido->numero_pedido,
+                            'tipo' => $mov->pedido->tipo,
+                            'estado' => $mov->pedido->estado,
+                            'comentarios_aprobacion' => $mov->pedido->comentarios_aprobacion,
+                            'observaciones' => $mov->pedido->observaciones,
+                            'notas' => $mov->pedido->notas,
+                            'comentarios' => ($mov->pedido->historial && $mov->pedido->historial->isNotEmpty()) 
+                                ? $mov->pedido->historial->map(function($entrada) {
+                                    return [
+                                        'id' => $entrada->id,
+                                        'descripcion' => $entrada->descripcion,
+                                        'fecha' => $entrada->fecha ? $entrada->fecha->format('d/m/Y H:i:s') : null,
+                                        'fecha_relativa' => $entrada->fecha ? $entrada->fecha->diffForHumans() : null,
+                                        'usuario' => $entrada->usuario ? [
+                                            'nombre' => $entrada->usuario->nombre,
+                                            'email' => $entrada->usuario->email
+                                        ] : null
+                                    ];
+                                })->toArray() 
+                                : []
+                        ] : null,
                         'total_lineas' => $mov->detalles->count(),
                         'total_cantidad' => $mov->detalles->sum('cantidad'),
                         'tiene_firma_emisor' => $mov->firmaEmisor ? true : false,
@@ -297,7 +324,9 @@ class MaterialMovimientoController extends Controller
                 $token = $movimiento->generarEnlacePublico(30); // 30 días de validez
                 $movimiento->estado = 'pendiente_firma';
                 $movimiento->save();
-                $enlacePublico = url("/albaran/{$token}");
+                // Generar enlace con hash routing para Vue Router
+                $appDomain = \App\Models\AppConfig::getConfig()->app_domain ?? config('app.url');
+                $enlacePublico = rtrim($appDomain, '/') . '/gestionmaterial/#/albaran/' . $token;
                 
                 // Verificar y notificar solicitudes pendientes de los materiales incluidos
                 $entidadesIds = collect($validated['detalles'])->pluck('entidad_id')->unique();
@@ -547,8 +576,9 @@ class MaterialMovimientoController extends Controller
             $movimiento->estado = 'pendiente_firma';
             $movimiento->save();
 
-            // Devolver enlace de SPA para firma pública
-            $urlPublica = url("/albaran/{$token}");
+            // Generar enlace con hash routing para Vue Router
+            $appDomain = \App\Models\AppConfig::getConfig()->app_domain ?? config('app.url');
+            $urlPublica = rtrim($appDomain, '/') . '/gestionmaterial/#/albaran/' . $token;
 
             return response()->json([
                 'success' => true,

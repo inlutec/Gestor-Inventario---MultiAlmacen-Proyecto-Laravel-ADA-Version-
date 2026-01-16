@@ -402,7 +402,51 @@ async function denegarPeticion() {
 }
 
 async function verHistorial(p) {
-  peticionSeleccionada.value = p
+  console.log('Abriendo historial para petición - OBJETO ORIGINAL:', {
+    id: p.id,
+    numero_pedido: p.numero_pedido,
+    movimiento_id: p.movimiento_id,
+    tipo_id: typeof p.id,
+    objeto_completo: JSON.parse(JSON.stringify(p)) // Clonar para evitar referencias
+  })
+  
+  // Validar que el objeto tenga un ID válido
+  if (!p || !p.id) {
+    console.error('Error: La petición no tiene un ID válido', p)
+    alert('Error: No se pudo obtener el ID de la petición. Por favor, recarga la página.')
+    return
+  }
+  
+  // CRÍTICO: Asegurar que estamos usando el ID del pedido, NO el movimiento_id
+  // Si el ID coincide con el movimiento_id, hay un problema de mapeo
+  if (p.movimiento_id && p.movimiento_id === p.id) {
+    console.error('ERROR CRÍTICO: El ID del pedido coincide con el movimiento_id. Esto indica un problema de mapeo.')
+    console.error('ID recibido:', p.id, 'Movimiento ID:', p.movimiento_id)
+    alert('Error: Hay un problema con el ID de la petición. Por favor, recarga la página.')
+    return
+  }
+  
+  // Asegurar que el ID sea numérico y válido
+  const pedidoId = Number(p.id)
+  if (isNaN(pedidoId) || pedidoId <= 0) {
+    console.error('Error: ID de pedido inválido', p.id)
+    alert('Error: ID de pedido inválido. Por favor, recarga la página.')
+    return
+  }
+  
+  // Crear una copia del objeto con el ID correcto
+  const peticionConIdCorrecto = {
+    ...p,
+    id: pedidoId // Asegurar que sea el ID del pedido, no el movimiento_id
+  }
+  
+  console.log('Petición con ID corregido:', {
+    id: peticionConIdCorrecto.id,
+    numero_pedido: peticionConIdCorrecto.numero_pedido,
+    movimiento_id: peticionConIdCorrecto.movimiento_id
+  })
+  
+  peticionSeleccionada.value = peticionConIdCorrecto
   mostrarHistorialAuditoria.value = true
 }
 

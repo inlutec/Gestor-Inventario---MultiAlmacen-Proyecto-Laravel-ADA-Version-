@@ -10,8 +10,10 @@ use App\Models\Departamento;
 use App\Models\CheckmkConfig;
 use App\Models\CheckmkSyncLog;
 use App\Models\SmtpConfig;
+use App\Models\AppConfig;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 class ConfigController extends Controller
 {
@@ -789,6 +791,51 @@ class ConfigController extends Controller
         }
     }
 
+    // ==================== CONFIGURACIÓN DE APLICACIÓN ====================
+
+    /**
+     * Obtener configuración de la aplicación
+     */
+    public function getAppConfig()
+    {
+        $config = AppConfig::getConfig();
+        
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'app_domain' => $config->app_domain
+            ]
+        ]);
+    }
+
+    /**
+     * Actualizar configuración de la aplicación
+     */
+    public function updateAppConfig(Request $request)
+    {
+        $validated = $request->validate([
+            'app_domain' => 'required|string|max:255',
+        ]);
+
+        // Asegurar que el dominio tenga protocolo
+        $domain = $validated['app_domain'];
+        if (!preg_match('/^https?:\/\//', $domain)) {
+            $domain = 'http://' . $domain;
+        }
+
+        $config = AppConfig::getConfig();
+        $config->app_domain = rtrim($domain, '/');
+        $config->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Configuración actualizada correctamente',
+            'data' => [
+                'app_domain' => $config->app_domain
+            ]
+        ]);
+    }
+
     // ==================== CONFIGURACIÓN SMTP ====================
 
     /**
@@ -876,31 +923,58 @@ class ConfigController extends Controller
                 ], 400);
             }
 
+            // Log inicial
+            Log::info('Iniciando prueba SMTP', [
+                'config_id' => $config->id,
+                'host' => $config->host,
+                'port' => $config->port,
+                'encryption' => $config->encryption
+            ]);
+
             // Configurar timeout más corto para evitar esperas largas
             ini_set('default_socket_timeout', 10);
 
             // Aplicar la configuración
-            $config->apply();
+            try {
+                $config->apply();
+                Log::info('Configuración SMTP aplicada correctamente en test');
+            } catch (\Exception $e) {
+                Log::error('Error aplicando configuración SMTP en test: ' . $e->getMessage());
+                throw new \Exception('Error al aplicar configuración SMTP: ' . $e->getMessage());
+            }
+
+            // Verificar que la configuración aplicada sea correcta
+            $appliedHost = config('mail.mailers.smtp.host');
+            $appliedPort = config('mail.mailers.smtp.port');
+            $appliedEncryption = config('mail.mailers.smtp.encryption');
+            
+            Log::info('Configuración SMTP verificada después de apply()', [
+                'applied_host' => $appliedHost,
+                'applied_port' => $appliedPort,
+                'applied_encryption' => $appliedEncryption,
+                'from_address' => config('mail.from.address')
+            ]);
 
             // Verificar que la configuración sea coherente
             $encryption = $config->encryption === 'none' ? null : $config->encryption;
             
-            // Validar puerto según encriptación
+            // Validar puerto según encriptación (solo advertencia, no error fatal)
             if ($encryption === 'ssl' && $config->port != 465) {
-                throw new \Exception('Puerto incorrecto para SSL. Use 465 para SSL o 587 para TLS.');
+                Log::warning('Puerto no estándar para SSL: ' . $config->port . ' (recomendado: 465)');
             }
             
             if ($encryption === 'tls' && $config->port != 587) {
-                throw new \Exception('Puerto incorrecto para TLS. Use 587 para TLS o 465 para SSL.');
+                Log::warning('Puerto no estándar para TLS: ' . $config->port . ' (recomendado: 587)');
             }
 
             // Log para depuración
-            Log::info('Probando SMTP', [
+            Log::info('Probando SMTP - intentando conexión', [
                 'host' => $config->host,
                 'port' => $config->port,
                 'encryption' => $encryption,
-                'username' => $config->username,
-                'from' => $config->from_address
+                'username' => $config->username ? 'configurado' : 'sin autenticación',
+                'from' => $config->from_address,
+                'email_prueba' => $validated['email_prueba']
             ]);
 
             // Intentar enviar email de prueba
@@ -924,7 +998,7 @@ class ConfigController extends Controller
                 'message' => 'Email de prueba enviado correctamente a ' . $validated['email_prueba']
             ]);
 
-        } catch (\Swift_TransportException $e) {
+        } catch (TransportExceptionInterface $e) {
             $errorMsg = $e->getMessage();
             
             // Mensajes de error más amigables
@@ -952,6 +1026,36 @@ class ConfigController extends Controller
                 'message' => $errorMsg
             ], 500);
 
+        } catch (TransportExceptionInterface $e) {
+            $errorMsg = $e->getMessage();
+            
+            // Mensajes de error más amigables
+            if (strpos($errorMsg, 'Connection timed out') !== false) {
+                $errorMsg = 'Timeout de conexión. Verifica que el host y puerto sean correctos y que el servidor sea accesible.';
+            } elseif (strpos($errorMsg, 'Connection refused') !== false) {
+                $errorMsg = 'Conexión rechazada. Verifica el host y puerto. Asegúrate de usar el puerto correcto (587 para TLS, 465 para SSL).';
+            } elseif (strpos($errorMsg, 'stream_socket_enable_crypto') !== false) {
+                $errorMsg = 'Error en la encriptación. Verifica que el tipo de encriptación coincida con el puerto (TLS=587, SSL=465).';
+            } elseif (strpos($errorMsg, 'Authentication') !== false || strpos($errorMsg, 'Invalid credentials') !== false) {
+                $errorMsg = 'Credenciales inválidas. Verifica el usuario y contraseña SMTP.';
+            }
+
+            if ($config) {
+                $config->update([
+                    'ultima_prueba' => now(),
+                    'resultado_prueba' => 'Error: ' . $errorMsg
+                ]);
+            }
+
+            Log::error('Error SMTP (Transport): ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => $errorMsg
+            ], 500);
+
         } catch (\Exception $e) {
             $errorMsg = $e->getMessage();
 
@@ -962,7 +1066,10 @@ class ConfigController extends Controller
                 ]);
             }
 
-            Log::error('Error probando configuración SMTP: ' . $errorMsg);
+            Log::error('Error probando configuración SMTP: ' . $errorMsg, [
+                'exception_class' => get_class($e),
+                'trace' => $e->getTraceAsString()
+            ]);
             
             return response()->json([
                 'success' => false,

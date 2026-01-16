@@ -128,6 +128,38 @@
       <div v-if="mensajeLogos" :class="['p-4 rounded-lg text-sm', mensajeLogos.tipo === 'success' ? 'bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-300' : 'bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-300']">
         {{ mensajeLogos.texto }}
       </div>
+
+      <!-- Configuración de Dominio/IP -->
+      <div class="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
+        <h4 class="text-md font-semibold mb-4 text-gray-900 dark:text-gray-100">Configuración de Dominio/IP</h4>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          Configura el dominio o IP que se usará para generar los enlaces de seguimiento de pedidos en los emails.
+          Puedes usar una IP (ej: http://10.66.129.108) o un dominio (ej: https://material.junta-andalucia.es)
+        </p>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Dominio/IP Base
+            </label>
+            <input
+              v-model="appConfig.app_domain"
+              type="text"
+              placeholder="http://10.66.129.108 o https://dominio.com"
+              class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-junta-green-500 focus:border-junta-green-500 dark:bg-gray-800 dark:text-gray-100"
+            />
+            <p class="text-xs text-gray-500 mt-1">Incluye el protocolo (http:// o https://)</p>
+          </div>
+          <button
+            @click="guardarAppConfig"
+            :disabled="guardandoAppConfig"
+            class="btn btn-primary">
+            {{ guardandoAppConfig ? 'Guardando...' : 'Guardar Configuración' }}
+          </button>
+          <div v-if="mensajeAppConfig" :class="['p-4 rounded-lg text-sm mt-2', mensajeAppConfig.tipo === 'success' ? 'bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-300' : 'bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-300']">
+            {{ mensajeAppConfig.texto }}
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Tab: Categorías de Material -->
@@ -1739,6 +1771,9 @@ const previewAda = ref(null);
 const subiendoJunta = ref(false);
 const subiendoAda = ref(false);
 const mensajeLogos = ref(null);
+const appConfig = ref({ app_domain: 'http://10.66.129.108' });
+const guardandoAppConfig = ref(false);
+const mensajeAppConfig = ref(null);
 
 const handleFileJunta = (e) => {
   const file = e.target.files[0];
@@ -1808,6 +1843,37 @@ const subirLogo = async (tipo) => {
   } finally {
     if (tipo === 'junta') subiendoJunta.value = false;
     else subiendoAda.value = false;
+  }
+};
+
+const cargarAppConfig = async () => {
+  try {
+    const { data } = await axios.get('/config/app-config');
+    if (data.success && data.data) {
+      appConfig.value = data.data;
+    }
+  } catch (error) {
+    console.error('Error cargando configuración de app:', error);
+  }
+};
+
+const guardarAppConfig = async () => {
+  guardandoAppConfig.value = true;
+  mensajeAppConfig.value = null;
+  
+  try {
+    const { data } = await axios.put('/config/app-config', {
+      app_domain: appConfig.value.app_domain
+    });
+    
+    if (data.success) {
+      mensajeAppConfig.value = { tipo: 'success', texto: 'Configuración guardada correctamente' };
+    }
+  } catch (error) {
+    console.error('Error guardando configuración:', error);
+    mensajeAppConfig.value = { tipo: 'error', texto: error.response?.data?.message || 'Error al guardar la configuración' };
+  } finally {
+    guardandoAppConfig.value = false;
   }
 };
 
@@ -2191,6 +2257,7 @@ onMounted(() => {
   if (tabActiva.value === 'campos') cargar();
   else if (tabActiva.value === 'justificantes') cargarJustificantes();
   else if (tabActiva.value === 'usuarios') cargarUsuarios();
+  else if (tabActiva.value === 'logotipos') cargarAppConfig();
 });
 watch(() => tabActiva.value, (newTab) => {
   if (newTab === 'campos') cargar();
@@ -2202,6 +2269,7 @@ watch(() => tabActiva.value, (newTab) => {
   }
   else if (newTab === 'smtp') cargarConfigSmtp();
   else if (newTab === 'usuarios') cargarUsuarios();
+  else if (newTab === 'logotipos') cargarAppConfig();
 });
 
 // --- SEDES Y DEPARTAMENTOS ---

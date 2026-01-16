@@ -1,22 +1,24 @@
-# Sistema de Gestión de Inventario de Material - Junta de Andalucía Version
+# Sistema de Gestión de Inventario de Material - Junta de Andalucía
+
+![Laravel](https://img.shields.io/badge/Laravel-11.x-FF2D20?style=flat&logo=laravel)
+![Vue.js](https://img.shields.io/badge/Vue.js-3.x-4FC08D?style=flat&logo=vue.js)
+![PHP](https://img.shields.io/badge/PHP-8.3-777BB4?style=flat&logo=php)
+![MySQL](https://img.shields.io/badge/MySQL-8.0+-4479A1?style=flat&logo=mysql)
+
+Sistema web desarrollado para la **Junta de Andalucía** que permite la gestión integral del inventario de pequeño material. El sistema facilita el control de stock, movimientos de entrada y salida, peticiones públicas de material, solicitudes de reposición, y gestión de almacenes distribuidos geográficamente.
 
 ## 📋 Índice
 
-1. [Descripción del Proyecto](#descripción-del-proyecto)
-2. [Características Principales](#características-principales)
-3. [Requisitos del Sistema](#requisitos-del-sistema)
-4. [Instalación](#instalación)
-5. [Configuración](#configuración)
-6. [Estructura del Proyecto](#estructura-del-proyecto)
-7. [Estructura de Base de Datos](#estructura-de-base-de-datos)
-8. [API y Endpoints](#api-y-endpoints)
-9. [Funcionalidades Detalladas](#funcionalidades-detalladas)
-10. [Guías de Uso](#guías-de-uso)
-11. [Resolución de Problemas](#resolución-de-problemas)
-12. [Mantenimiento](#mantenimiento)
-13. [Despliegue en Producción](#despliegue-en-producción)
-14. [Seguridad](#seguridad)
-15. [Contribución](#contribución)
+1. [Descripción del Proyecto](#-descripción-del-proyecto)
+2. [Características Principales](#-características-principales)
+3. [Quick Start](#-quick-start)
+4. [Documentación Completa](#-documentación-completa)
+5. [Stack Tecnológico](#-stack-tecnológico)
+6. [Estructura del Proyecto](#-estructura-del-proyecto)
+7. [Instalación](#-instalación)
+8. [Configuración](#-configuración)
+9. [Contribución](#-contribución)
+10. [Licencia](#-licencia)
 
 ---
 
@@ -24,17 +26,86 @@
 
 Sistema web desarrollado para la **Junta de Andalucía** que permite la gestión integral del inventario de pequeño material. El sistema facilita el control de stock, movimientos de entrada y salida, peticiones públicas de material, solicitudes de reposición, y gestión de almacenes distribuidos geográficamente.
 
-### Tecnologías Utilizadas
+### Características Destacadas
 
-- **Backend**: Laravel 11 (PHP 8.3)
-- **Frontend**: Vue.js 3 + Vite
-- **Base de Datos**: MySQL/MariaDB
-- **Autenticación**: Laravel Sanctum
-- **Estilos**: Tailwind CSS
-- **Mapas**: Leaflet.js
-- **Gráficos**: Chart.js
-- **PWA**: Service Worker + Manifest
-- **Comunicación en Tiempo Real**: Server-Sent Events (SSE) para firma móvil
+- ✅ **Gestión completa de inventario** con control de stock en tiempo real
+- ✅ **Sistema de movimientos** con albaranes y firmas digitales
+- ✅ **Firma móvil remota** mediante Server-Sent Events (SSE)
+- ✅ **Peticiones públicas** con mapa interactivo de almacenes (Leaflet.js)
+- ✅ **Dashboard** con KPIs y estadísticas
+- ✅ **PWA** instalable en dispositivos móviles
+- ✅ **Sistema de proyectos** con gestión de tareas
+- ✅ **Notificaciones** push y por email
+- ✅ **Backups** automáticos de base de datos
+- ✅ **Multi-almacén** con filtrado por usuario
+
+## 🚀 Quick Start
+
+```bash
+# Clonar repositorio
+git clone <url-del-repositorio>
+cd gestor-inventario-material
+
+# Instalar dependencias
+composer install
+npm install
+
+# Configurar entorno
+cp .env.example .env
+php artisan key:generate
+
+# Configurar base de datos en .env y ejecutar migraciones
+php artisan migrate
+php artisan db:seed
+
+# Compilar assets
+npm run build
+
+# Iniciar servidor de desarrollo
+php artisan serve
+npm run dev
+```
+
+## 📚 Documentación Completa
+
+Para información detallada sobre el proyecto, consulta la documentación completa:
+
+- **[Arquitectura del Sistema](docs/ARCHITECTURE.md)** - Diagramas y estructura del sistema
+- **[Documentación de API](docs/API_DOCUMENTATION.md)** - Todos los endpoints disponibles
+- **[Base de Datos](docs/DATABASE.md)** - Esquema completo y relaciones
+- **[Frontend](docs/FRONTEND.md)** - Estructura Vue.js y componentes
+- **[Backend](docs/BACKEND.md)** - Controladores, modelos y servicios
+- **[Funcionalidades](docs/FEATURES.md)** - Detalle de cada funcionalidad
+- **[Despliegue](docs/DEPLOYMENT.md)** - Guía completa de despliegue
+- **[Desarrollo](docs/DEVELOPMENT.md)** - Configuración del entorno de desarrollo
+- **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Solución de problemas comunes
+- **[SSE Implementation](docs/SSE_IMPLEMENTATION.md)** - Implementación de firma móvil
+
+## 🛠 Stack Tecnológico
+
+### Backend
+- **Laravel 11** - Framework PHP
+- **PHP 8.3+** - Lenguaje de programación
+- **MySQL/MariaDB** - Base de datos
+- **Laravel Sanctum** - Autenticación API
+- **DomPDF** - Generación de PDFs
+
+### Frontend
+- **Vue.js 3** - Framework JavaScript
+- **Vite** - Build tool
+- **Pinia** - Gestión de estado
+- **Vue Router** - Enrutamiento
+- **Tailwind CSS** - Framework CSS
+- **Headless UI** - Componentes UI
+- **Heroicons** - Iconos
+- **Chart.js** - Gráficos
+- **Leaflet.js** - Mapas interactivos
+
+### Infraestructura
+- **Nginx** - Servidor web
+- **PHP-FPM** - Procesador PHP
+- **Service Worker** - PWA
+- **Server-Sent Events** - Comunicación en tiempo real
 
 ---
 

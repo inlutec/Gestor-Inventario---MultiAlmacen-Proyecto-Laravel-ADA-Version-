@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\NotificationSetting;
 use App\Models\Usuario;
 use App\Models\SmtpConfig;
+use App\Models\AppConfig;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 
@@ -18,6 +19,15 @@ class NotificationService
         try {
             $config = SmtpConfig::getActive();
             if ($config) {
+                Log::info('Aplicando configuración SMTP desde BD', [
+                    'config_id' => $config->id,
+                    'host' => $config->host,
+                    'port' => $config->port,
+                    'encryption' => $config->encryption,
+                    'from_address' => $config->from_address,
+                    'activo' => $config->activo
+                ]);
+                
                 $config->apply();
                 
                 // Limpiar instancias del mailer para forzar recreación
@@ -25,15 +35,20 @@ class NotificationService
                 app()->forgetInstance(\Illuminate\Contracts\Mail\Mailer::class);
                 app()->forgetInstance(\Illuminate\Contracts\Mail\Factory::class);
                 
-                Log::info('Configuración SMTP aplicada', [
+                Log::info('Configuración SMTP aplicada correctamente', [
                     'host' => config('mail.mailers.smtp.host'),
                     'port' => config('mail.mailers.smtp.port'),
+                    'encryption' => config('mail.mailers.smtp.encryption'),
                     'username' => config('mail.mailers.smtp.username') ?: 'sin autenticación',
-                    'from' => config('mail.from.address')
+                    'from_address' => config('mail.from.address'),
+                    'from_name' => config('mail.from.name')
                 ]);
+            } else {
+                Log::warning('No se encontró configuración SMTP activa en la base de datos');
             }
         } catch (\Exception $e) {
-            Log::warning("No se pudo aplicar configuración SMTP: " . $e->getMessage());
+            Log::error("No se pudo aplicar configuración SMTP: " . $e->getMessage());
+            Log::error("Stack trace: " . $e->getTraceAsString());
         }
     }
 
@@ -73,7 +88,14 @@ class NotificationService
             return;
         }
 
-        $urlPeticion = config('app.url') . '/gestionmaterial/#/pedidos';
+        $appDomain = AppConfig::getAppDomain();
+        $urlPeticion = $appDomain . '/gestionmaterial/#/pedidos';
+        
+        // Generar URL de seguimiento si el pedido tiene token
+        $urlSeguimiento = null;
+        if ($peticion->token_seguimiento) {
+            $urlSeguimiento = $appDomain . '/gestionmaterial/#/seguimiento-pedido/' . $peticion->token_seguimiento;
+        }
         
         foreach ($destinatarios as $email) {
             $esAdmin = Usuario::where('email', $email)->where('rol', 'admin')->exists();
@@ -91,6 +113,7 @@ class NotificationService
                     'nombreUsuario' => $nombreUsuario,
                     'peticion' => $peticion,
                     'urlPeticion' => $urlPeticion,
+                    'urlSeguimiento' => $urlSeguimiento,
                     'esAdmin' => $esAdmin
                 ], function ($message) use ($email) {
                     $message->to($email)
@@ -134,7 +157,14 @@ class NotificationService
             return;
         }
 
-        $urlPeticion = config('app.url') . '/gestionmaterial/#/pedidos';
+        $appDomain = AppConfig::getAppDomain();
+        $urlPeticion = $appDomain . '/gestionmaterial/#/pedidos';
+        
+        // Generar URL de seguimiento si el pedido tiene token
+        $urlSeguimiento = null;
+        if ($peticion->token_seguimiento) {
+            $urlSeguimiento = $appDomain . '/gestionmaterial/#/seguimiento-pedido/' . $peticion->token_seguimiento;
+        }
         
         try {
             Mail::send('emails.peticion-aprobada', [
@@ -142,7 +172,8 @@ class NotificationService
                 'nombreUsuario' => $nombreDestinatario,
                 'peticion' => $peticion,
                 'aprobadoPor' => $aprobadoPor,
-                'urlPeticion' => $urlPeticion
+                'urlPeticion' => $urlPeticion,
+                'urlSeguimiento' => $urlSeguimiento
             ], function ($message) use ($emailDestinatario) {
                 $message->to($emailDestinatario)
                        ->subject('Tu Petición ha sido Aprobada - ADA Córdoba');
@@ -184,7 +215,14 @@ class NotificationService
             return;
         }
 
-        $urlPeticion = config('app.url') . '/gestionmaterial/#/pedidos';
+        $appDomain = AppConfig::getAppDomain();
+        $urlPeticion = $appDomain . '/gestionmaterial/#/pedidos';
+        
+        // Generar URL de seguimiento si el pedido tiene token
+        $urlSeguimiento = null;
+        if ($peticion->token_seguimiento) {
+            $urlSeguimiento = $appDomain . '/gestionmaterial/#/seguimiento-pedido/' . $peticion->token_seguimiento;
+        }
         
         try {
             Mail::send('emails.peticion-denegada', [
@@ -193,7 +231,8 @@ class NotificationService
                 'peticion' => $peticion,
                 'denegadoPor' => $denegadoPor,
                 'motivo' => $motivo,
-                'urlPeticion' => $urlPeticion
+                'urlPeticion' => $urlPeticion,
+                'urlSeguimiento' => $urlSeguimiento
             ], function ($message) use ($emailDestinatario) {
                 $message->to($emailDestinatario)
                        ->subject('Petición Denegada - ADA Córdoba');
@@ -223,7 +262,8 @@ class NotificationService
         $movimiento->load(['detalles', 'usuario']);
 
         $admins = Usuario::where('rol', 'admin')->get();
-        $urlMovimiento = config('app.url') . '/gestionmaterial/#/historial';
+        $appDomain = AppConfig::getAppDomain();
+        $urlMovimiento = $appDomain . '/gestionmaterial/#/historial';
         
         foreach ($admins as $admin) {
             if (!$admin->email) continue;
@@ -263,7 +303,8 @@ class NotificationService
             return;
         }
 
-        $urlMovimiento = config('app.url') . '/gestionmaterial/#/historial';
+        $appDomain = AppConfig::getAppDomain();
+        $urlMovimiento = $appDomain . '/gestionmaterial/#/historial';
         
         try {
             Mail::send('emails.movimiento-entregado', [
@@ -302,7 +343,8 @@ class NotificationService
             ->with(['material', 'usuario', 'proveedor'])
             ->get();
 
-        $urlBase = config('app.url') . '/gestionmaterial/#/historial';
+        $appDomain = AppConfig::getAppDomain();
+        $urlBase = $appDomain . '/gestionmaterial/#/historial';
         
         foreach ($movimientos as $movimiento) {
             $destinatarios = NotificationSetting::obtenerDestinatarios(
@@ -352,7 +394,8 @@ class NotificationService
             ->get();
 
         $admins = Usuario::where('rol', 'admin')->get();
-        $urlBase = config('app.url') . '/gestionmaterial/#/historial';
+        $appDomain = AppConfig::getAppDomain();
+        $urlBase = $appDomain . '/gestionmaterial/#/historial';
         
         foreach ($movimientos as $movimiento) {
             foreach ($admins as $admin) {
@@ -391,7 +434,8 @@ class NotificationService
             return;
         }
 
-        $urlFirma = config('app.url') . '/gestionmaterial/#/firmas';
+        $appDomain = AppConfig::getAppDomain();
+        $urlFirma = $appDomain . '/gestionmaterial/#/firmas';
         
         try {
             Mail::send('emails.firma-solicitada', [
@@ -534,6 +578,62 @@ class NotificationService
                 'asunto' => $asunto ?? null,
                 'trace' => $e->getTraceAsString()
             ]);
+        }
+    }
+
+    /**
+     * Enviar notificación de comentario en pedido al solicitante
+     */
+    public function notificarComentarioPedido($pedido, $comentario, $comentadoPor)
+    {
+        $evento = 'comentario_pedido';
+        
+        // Aplicar configuración SMTP
+        $this->aplicarConfigSmtp();
+        
+        // Determinar email del destinatario
+        $emailDestinatario = null;
+        $nombreDestinatario = 'Usuario';
+        
+        if ($pedido->email_solicitante && filter_var($pedido->email_solicitante, FILTER_VALIDATE_EMAIL)) {
+            $emailDestinatario = $pedido->email_solicitante;
+            $nombreDestinatario = $pedido->usuario_solicitante ?? 'Usuario';
+        } elseif ($pedido->usuarioCreador && $pedido->usuarioCreador->email) {
+            $emailDestinatario = $pedido->usuarioCreador->email;
+            $nombreDestinatario = $pedido->usuarioCreador->nombre;
+        }
+        
+        if (!$emailDestinatario) {
+            Log::warning('No se pudo enviar notificación de comentario: email no válido', [
+                'pedido_id' => $pedido->id,
+                'email_solicitante' => $pedido->email_solicitante ?? null
+            ]);
+            return;
+        }
+
+        // Generar URL de seguimiento
+        $appDomain = AppConfig::getAppDomain();
+        $urlSeguimiento = null;
+        if ($pedido->token_seguimiento) {
+            $urlSeguimiento = $appDomain . '/gestionmaterial/#/seguimiento-pedido/' . $pedido->token_seguimiento;
+        }
+        
+        try {
+            Mail::send('emails.comentario-pedido', [
+                'titulo' => 'Nuevo Comentario en tu Pedido',
+                'nombreUsuario' => $nombreDestinatario,
+                'pedido' => $pedido,
+                'comentario' => $comentario,
+                'comentadoPor' => $comentadoPor,
+                'urlSeguimiento' => $urlSeguimiento
+            ], function ($message) use ($emailDestinatario, $pedido) {
+                $message->to($emailDestinatario)
+                       ->subject('Nuevo Comentario en tu Pedido #' . $pedido->numero_pedido . ' - ADA Córdoba');
+            });
+            
+            Log::info("Notificación de comentario enviada a {$emailDestinatario} para pedido #{$pedido->numero_pedido}");
+        } catch (\Exception $e) {
+            Log::error("Error enviando notificación de comentario: " . $e->getMessage());
         }
     }
 }

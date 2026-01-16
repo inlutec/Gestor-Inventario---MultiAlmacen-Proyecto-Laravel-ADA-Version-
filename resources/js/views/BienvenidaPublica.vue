@@ -44,8 +44,7 @@
             <div class="p-6 sm:p-8">
               <div class="bg-junta-green-100 rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mb-6 group-hover:bg-junta-green-200 transition-colors">
                 <svg class="w-8 h-8 sm:w-10 sm:h-10 text-junta-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h10c.512 0 1.024.195 1.414.586l7 7a2 2 0 002.828 0l-7-7A1.994 1.994 0 0017 3V4a1 1 0 00-1-1h-1z"/>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 11-8 4 4 0 018 0zM7 12a4 4 0 11-8 4 4 0 01-8 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
                 </svg>
               </div>
               <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-3">Solicitar Material</h3>
@@ -68,8 +67,7 @@
             <div class="p-6 sm:p-8">
               <div class="bg-blue-100 rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mb-6 group-hover:bg-blue-200 transition-colors">
                 <svg class="w-8 h-8 sm:w-10 sm:h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707L19.586 6.707A2 2 0 0118 5v8a2 2 0 01-2 2H7a2 2 0 01-2-2V5z"/>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707L19.586 6.707A2 2 0 0118 5v8a2 2 0 01-2 2H7a2 2 0 01-2-2V5z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
               </div>
               <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-3">Consultar Albarán</h3>
@@ -89,7 +87,6 @@
               <div class="bg-purple-100 rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mb-6 group-hover:bg-purple-200 transition-colors">
                 <svg class="w-8 h-8 sm:w-10 sm:h-10 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l7-7m0 0l-7 7m-7 0v10"/>
                 </svg>
               </div>
               <h3 class="text-xl sm:text-2xl font-bold text-gray-900 mb-3">Acceso Personal</h3>
@@ -183,9 +180,8 @@
             </div>
 
             <div class="flex items-start space-x-3">
-              <svg class="w-6 h-6 text-junta-green-200 flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
-                <path fill-rule="evenodd" d="M4 5a2 2 0 012-2v8a2 2 0 012 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l2 2h12l-2-2z" clip-rule="evenodd"/>
+              <svg class="w-6 h-6 text-junta-green-200 flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
               </svg>
               <div>
                 <h4 class="font-semibold mb-1">Inventario en Tiempo Real</h4>
@@ -194,9 +190,8 @@
             </div>
 
             <div class="flex items-start space-x-3">
-              <svg class="w-6 h-6 text-junta-green-200 flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0019 4V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a2 2 0 002 2h4a2 2 0 002-2V6a2 2 0 00-2-2h-4z"/>
-                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h4a2 2 0 002-2V6a2 2 0 00-2-2h-4z"/>
+              <svg class="w-6 h-6 text-junta-green-200 flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
               </svg>
               <div>
                 <h4 class="font-semibold mb-1">Notificaciones Automáticas</h4>
@@ -225,9 +220,8 @@
             </div>
 
             <div class="flex items-start space-x-3">
-              <svg class="w-6 h-6 text-junta-green-200 flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 00-1-1zM2 5a2 2 0 012-2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2H2z" clip-rule="evenodd"/>
-                <path fill-rule="evenodd" d="M15 7a1 1 0 011 1v1h1a1 1 0 011 1v1a1 1 0 01-1 1h-1a1 1 0 01-1-1V9a1 1 0 01-1-1h-1a1 1 0 01-1 1v1a1 1 0 001 1h1a1 1 0 001-1V8a1 1 0 00-1-1h-1z" clip-rule="evenodd"/>
+              <svg class="w-6 h-6 text-junta-green-200 flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
               <div>
                 <h4 class="font-semibold mb-1">Historial Completo</h4>

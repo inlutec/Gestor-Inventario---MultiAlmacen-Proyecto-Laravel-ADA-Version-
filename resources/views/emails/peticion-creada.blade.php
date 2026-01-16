@@ -38,5 +38,16 @@
 </p>
 @endif
 
+@if(!$esAdmin && isset($urlSeguimiento) && $urlSeguimiento)
+<div style="background-color: #f0f9ff; border-left: 4px solid #3b82f6; padding: 15px; margin: 20px 0;">
+    <p style="margin: 0 0 10px 0; font-weight: bold; color: #1e40af;">📋 Seguimiento de tu Pedido</p>
+    <p style="margin: 0 0 15px 0; color: #1e3a8a;">Puedes consultar el estado y las actualizaciones de tu pedido en cualquier momento usando el siguiente enlace:</p>
+    <p style="text-align: center; margin: 0;">
+        <a href="{{ $urlSeguimiento }}" class="button" style="background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block;">Ver Seguimiento del Pedido</a>
+    </p>
+    <p style="margin: 15px 0 0 0; font-size: 12px; color: #64748b;">Este enlace es único y privado. Guárdalo para consultar el estado de tu pedido sin necesidad de iniciar sesión.</p>
+</div>
+@endif
+
 <p>Puedes revisar esta petición en el sistema de gestión de material.</p>
 @endsection

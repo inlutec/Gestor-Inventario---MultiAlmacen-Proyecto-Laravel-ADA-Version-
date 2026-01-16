@@ -31,7 +31,13 @@
 
 <p>Si tienes alguna duda o deseas solicitar material nuevamente, puedes crear una nueva petición en el sistema.</p>
 
-<p style="text-align: center;">
-    <a href="{{ $urlPeticion }}" class="button">Ver Detalles</a>
+@if($urlSeguimiento)
+<p style="text-align: center; margin-top: 20px;">
+    <a href="{{ $urlSeguimiento }}" class="button" style="background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">Seguir mi Petición</a>
+</p>
+@endif
+
+<p style="text-align: center; margin-top: 10px;">
+    <a href="{{ $urlPeticion }}" class="button" style="background-color: #6b7280; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; display: inline-block;">Ver Detalles</a>
 </p>
 @endsection
